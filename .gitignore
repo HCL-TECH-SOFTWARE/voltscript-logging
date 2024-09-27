@@ -1,0 +1,15 @@
+# VoltScript
+effective-atlas.json
+/vses/*
+libs/VoltScriptCollections.vss
+libs/VoltScriptTesting.vss
+*/unit-test-reports/*
+seti.ini
+libcurl.log
+core
+/src/main.vss 
+.devcontainer/*
+/unit-test-reports/*
+*_UNMERGED.vss
+*launch.json
+*/logs/*

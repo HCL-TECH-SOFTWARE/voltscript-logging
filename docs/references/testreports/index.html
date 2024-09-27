@@ -1,0 +1,126 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <style>
+body {
+  font-family: arial, sans-serif;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+.overall {
+  margin-bottom: 5px;
+}
+.overall::before {
+  display: table;
+  content: "";
+}
+.overall::after {
+  display: table;
+  content: "";
+}
+
+.container {
+  margin: 0 auto;
+  max-width: 1170px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.row {
+  margin-bottom: 15px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+.overall-failed {
+  background-color: #cc3300;
+}
+
+.summary {
+  width: 20%;
+  float:left;
+  margin-right: 10px;
+}
+
+.body {
+  width: 79%;
+  float: left;
+}
+
+.passed {
+  color: #009933;
+  cursor: pointer;
+}
+.passed::before {
+  content: '\2713'; /* tick */
+}
+
+.failed {
+  color: #003399;
+  cursor: pointer;
+}
+.failed::before {
+  content: '\2716' /* cross */
+}
+
+.error {
+  color: #cc3300;
+  cursor: pointer;
+}
+.error::before {
+  content: '\2716' /* cross */
+}
+
+.highlight {
+  background-color: #3333cc;
+  color: #ffffff;
+}
+
+iframe {
+  width: 79%;
+  height: 100%;
+  border: 0px;
+}
+    </style>
+    <script>
+      let elemCount = 7;
+      function display(elemNum, title) {
+        for (let i = 1; i <= elemCount; i++) {
+          let elem = document.getElementById("test" + i);
+          elem.classList.remove("highlight");
+        }
+        let highlightElem = document.getElementById("test" + elemNum);
+        highlightElem.classList.add("highlight");
+        let bodyElem = document.getElementById("bodyIframe");
+        bodyElem.src = title;
+      }
+    </script>
+  </head>
+
+
+<body>
+    <div class="container">
+    <div class="summary">
+<div class = "passed" id="test1" onclick="display(1,'ThreadTests.html')">&nbsp;Thread Tests</div><div class = "passed" id="test2" onclick="display(2,'SessionTests.html')">&nbsp;Session Tests</div><div class = "passed" id="test3" onclick="display(3,'LogEntryTests.html')">&nbsp;Log Entry Tests</div><div class = "passed" id="test4" onclick="display(4,'LogCollectionTests.html')">&nbsp;Log Collection Tests</div><div class = "passed" id="test5" onclick="display(5,'LogFunctionTests.html')">&nbsp;Log Function Tests</div><div class = "passed" id="test6" onclick="display(6,'BaseWriterTests.html')">&nbsp;Base Writer Tests</div><div class = "passed" id="test7" onclick="display(7,'ErrorTests.html')">&nbsp;Error Tests</div>
+
+    </div>
+    <div class="body">
+      <iframe src="" title="Test Results" id="bodyIframe"></iframe>
+    </div>
+  </div>
+  </body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<!-- {{vsidgenerated}} -->
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Class: BaseLogWriter</title>
+	<meta name="date" content="2024-09-19">
+	<meta name="keywords" content="convertLogEntryToMessage()"><meta name="keywords" content="writeToLog()"><meta name="keywords" content="formatter()"><meta name="keywords" content="label()"><meta name="keywords" content="maxLevel()"><meta name="keywords" content="minLevel()"><meta name="keywords" content="initializeLog()"><meta name="keywords" content="New()"><meta name="keywords" content="outputLogEntryMessage()"><meta name="keywords" content="terminateLog()"><meta name="keywords" content="VoltscriptLogging.BaseLogWriter Class">
+	<link rel="stylesheet" type="text/css" href="..\..\resources/vsid.css" title="balistyle">
+	<script type="text/javascript" src="..\..\resources/vsid.js"></script>
+</head>
+<body>
+<script type="text/javascript"></script>
+<noscript><div>JavaScript is disabled on your browser.</div></noscript>
+
+
+<header id="masterHeader" class="dark master-header dark-master">
+	<div id="header-topbar" class="header-topbar">
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-6 text-left">
+					<a href="https://www.hcltechsw.com/" target="_blank" class="logo-hcl" rel="nofollow"><img src="..\..\resources/hcl-white.png" class="img-responsive"></a>
+				</div>
+				<div class="col-xs-6 text-right">
+					<a href="https://www.hcltechsw.com/" target="_blank" class="logo-hcl-tech" rel="nofollow">HCL Software</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</header>
+<!-- ========= START OF TOP NAVBAR ======= -->
+<div class="topNav">
+	<a name="navbar.top">
+	<!--   -->
+	</a>
+	<div class="skipNav"><a href="#skip.navbar.top" title="Skip navigation links">Skip navigation links</a></div>
+	<a name="navbar.top.firstrow">
+	<!--   -->
+	</a>	
+	<ul class="navList" title="Navigation">
+		<!-- -->
+		<li><a href="..\VoltScriptLogging_VSID.html" title="Navigate to VoltScriptLogging">VoltScript Logging</a></li><li><a href="..\VoltscriptLogging_Library.html" title="Navigate to VoltScriptLogging.VoltscriptLogging">VoltscriptLogging</a></li> 
+		<li class="navBarCell1Rev">BaseLogWriter</li>
+	</ul>
+</div>
+
+<div class="subNav">
+	<ul class="navList">
+	<!-- --> 
+	</ul>
+	<div><!--  -->
+		<script type="text/javascript"><!--
+		navcontentLink = document.getElementById("navcontent_navbar_top");
+		if (!!navcontentLink) {
+		  if(window==top) {
+			navcontentLink.style.display = "block";
+		  }
+		  else {
+			navcontentLink.style.display = "none";
+		  }
+		}
+		  //-->
+		</script>
+	</div>
+	<div>
+		<ul class="subNavList">
+			
+		</ul>
+	</div>
+	<a name="skip.navbar.top">
+	<!--   -->
+	</a>
+</div>
+<!-- ========= END OF TOP NAVBAR ========= -->
+
+<!-- Class -->
+
+<!-- ======== START OF CLASS DATA ======== -->
+<div class="header">
+	<h1 title="Class BaseLogWriter" class="title">Public Class BaseLogWriter</h1>
+</div>
+
+<div class="contentContainer">
+	<ul class="inheritance">
+		<!-- --> 
+
+		<ul class="inheritance">
+		<!-- --> 
+
+			<ul class="inheritance">
+				<li><h2>VoltscriptLogging.BaseLogWriter</h2></li>
+			</ul>
+		</ul>
+	</ul>
+
+	<hr />
+
+	<div class="description">	<ul class="blockList">		<li class="blockList">			<div class="comments"><!-- comment --><pre>Abstract class for writing log entries in the session</pre></div>			<hr />		</li>	</ul></div>
+	<ul class="blockList">	<li class="blockList">		<a name="class.summary"><!--   --></a>		<h3>Class Summary</h3>		<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Class Summary Table">			<thead>						</thead>			<tbody>			<tr class="altColor"><td class="colFirst"><span class="memberNameLabel" title="{{fqn}}">Project ID</span></td><td class="colLast">7AD3BBAF0294573900258A7F004F94A5</td></tr><tr class="rowColor"><td class="colFirst"><span class="memberNameLabel" title="{{fqn}}">Version</span></td><td class="colLast"></td></tr><tr class="altColor"><td class="colFirst"><span class="memberNameLabel" title="{{fqn}}">Class ID</span></td><td class="colLast">3B373E9EC1C6805D00258B1C00328BBC</td></tr><tr class="rowColor"><td class="colFirst"><span class="memberNameLabel" title="{{fqn}}">Class Type</span></td><td class="colLast">Base</td></tr><tr class="altColor"><td class="colFirst"><span class="memberNameLabel" title="{{fqn}}">Attributes</span></td><td class="colLast"></td></tr>			</tbody>		</table>	</li></ul>
+	
+	<div class="summary">
+		<ul class="blockList">
+			<li class="blockList">
+				
+				 
+				
+				<ul class="blockList">	<li class="blockList">		<a name="properties.summary"><!--   --></a>		<h3>Property Summaries</h3>		<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Property Summary table, listing methods and comments">			<thead>						</thead>			<tbody>			<tr class="rowColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.Get.formatter-">formatter</a> (Get)</span> As String</code></td></tr><tr class="altColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.Get.label-">label</a> (Get)</span> As String</code></td></tr><tr class="rowColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.Get.maxLevel-">maxLevel</a> (Get)</span> As Integer</code></td></tr><tr class="altColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.Get.minLevel-">minLevel</a> (Get)</span> As Integer</code></td></tr>			</tbody>		</table>	</li></ul>  
+				
+				<ul class="blockList">	<li class="blockList">		<a name="methods.summary"><!--   --></a>		<h3>Method Summaries</h3>		<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods and comments">			<thead>						</thead>			<tbody>			<tr class="rowColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.convertLogEntryToMessage-">convertLogEntryToMessage</a></span>(logEntry As LogEntry) As String</code></td></tr><tr class="altColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.writeToLog-">writeToLog</a></span>(session As LogSession) As Boolean</code></td></tr><tr class="rowColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.initializeLog-">initializeLog</a></span>()</code></td></tr><tr class="altColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.New-">New</a></span>(label As String, minLevel As Integer, maxLevel As Integer, formatter As String)</code></td></tr><tr class="rowColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.outputLogEntryMessage-">outputLogEntryMessage</a></span>(message As String)</code></td></tr><tr class="altColor"><td class="colFirst"><code><span class="memberNameLink"><a href="#VoltscriptLogging.BaseLogWriter.terminateLog-">terminateLog</a></span>()</code></td></tr>			</tbody>		</table>	</li></ul> 
+			</li>
+		</ul>
+	</div>
+
+	<div class="details">
+		<ul class="blockList">
+			<li class="blockList">
+				
+				
+				<!-- ============ PROPERTY DETAIL ========== --><ul class="blockList">	<li class="blockList">		<a name="property.detail"><!--   --></a>		<h3>Properties Detail</h3>		<!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.Get.formatter-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.Get.formatter"><!--   --></a>		<h4>formatter (Get)</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="formatter method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Property Get formatter<em></em> As String</pre></th></tr>			</thead>			<tbody>	<tr class="altColor"><td class="colFirst" colspan="5"><a name="VoltscriptLogging.BaseLogWriter.Get.formatter.comments"><!--   --></a>String to manage output format, using mustache templating for properties of a Log Entry.</td></tr>		<tr><td>&nbsp;</td></tr><tr><th class="colFirst" scope="col" colspan="5">Code Sample</th></tr><tr class="altColor"><td class="colFirst" colspan="5" style="padding-top:0;"><a name="VoltscriptLogging.BaseLogWriter.Get.formatter.codesample"><!--   --></a><pre class="codesample">Dim fmt as String<br />Dim logger as BaseLogWriter<br />fmt = |{{levelName}}: [{{timestamp}}] {{message}}<br />{{extInfo}}|<br />Set logger = new BaseLogWriter(&quot;ConsoleLogger&quot;, LEVEL_INFO, fmt)</pre></td></tr>		</tbody>		</table>			</li></ul><!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.Get.label-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.Get.label"><!--   --></a>		<h4>label (Get)</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="label method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Property Get label<em></em> As String</pre></th></tr>			</thead>			<tbody>	<tr class="altColor"><td class="colFirst" colspan="5"><a name="VoltscriptLogging.BaseLogWriter.Get.label.comments"><!--   --></a>Label with which to refer to the log writer</td></tr>				</tbody>		</table>			</li></ul><!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.Get.maxLevel-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.Get.maxLevel"><!--   --></a>		<h4>maxLevel (Get)</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="maxLevel method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Property Get maxLevel<em></em> As Integer</pre></th></tr>			</thead>			<tbody>	<tr class="altColor"><td class="colFirst" colspan="5"><a name="VoltscriptLogging.BaseLogWriter.Get.maxLevel.comments"><!--   --></a>Level at which to log out</td></tr>				</tbody>		</table>			</li></ul><!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.Get.minLevel-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.Get.minLevel"><!--   --></a>		<h4>minLevel (Get)</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="minLevel method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Property Get minLevel<em></em> As Integer</pre></th></tr>			</thead>			<tbody>					</tbody>		</table>			</li></ul>	</li></ul>
+				<!-- ============ METHOD DETAIL ========== --><ul class="blockList">	<li class="blockList">		<a name="method.detail"><!--   --></a>		<h3>Methods Detail</h3>		<!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.convertLogEntryToMessage-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.convertLogEntryToMessage"><!--   --></a>		<h4>convertLogEntryToMessage</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="convertLogEntryToMessage method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Function convertLogEntryToMessage<em>(logEntry As LogEntry)</em> As String</pre></th></tr>			</thead>			<tbody>	<tr class="altColor"><td class="colFirst" colspan="5"><a name="VoltscriptLogging.BaseLogWriter.convertLogEntryToMessage.comments"><!--   --></a>Converts a log entry in a specific string format using the formatter passed in. Override this method to skip using a formatter.</td></tr>	<tr>	<th class="colFirst min" scope="col">idx</th>	<th class="colOne" scope="col"><a name="VoltscriptLogging.BaseLogWriter.convertLogEntryToMessage.arguments"><!--   --></a>Argument</th>	<th class="colOne" scope="col">Data Type</th>	<th class="colOne attributes" scope="col">Attributes</th>	<th class="colLast comment" scope="col">Comments</th></tr><tr class="altColor"><td class="colFirst min">1</strong></td><td class="colOne"><strong>logEntry</strong></td><td class="colOne">LogEntry</td><td class="colOne attributes"></td><td class="colLast comment"><em>Log Entry to format&nbsp;</em></td></tr>		<tr><td>&nbsp;</td></tr><tr><th class="colFirst" scope="col" colspan="5">Throws Exceptions</th></tr><tr>	<th class="colFirst" scope="col"><a name="VoltscriptLogging.BaseLogWriter.convertLogEntryToMessage.exceptions"><!--   --></a>Message</th>	<th class="colOne" scope="col">Error Code</th>	<th class="colLast" scope="col" colspan="3">Comments</th></tr><!-- ExceptionElement  --><tr class="altColor"><td class="colFirst min">No Formatter</td><td class="colOne">1000</td><td class="colLast comment" colspan="3"><em>"No formatter set for log writer " & Me.label&nbsp;</em></td></tr>	</tbody>		</table>			</li></ul><!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.writeToLog-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.writeToLog"><!--   --></a>		<h4>writeToLog</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="writeToLog method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Function writeToLog<em>(session As LogSession)</em> As Boolean</pre></th></tr>			</thead>			<tbody>	<tr class="altColor"><td class="colFirst" colspan="5"><a name="VoltscriptLogging.BaseLogWriter.writeToLog.comments"><!--   --></a>Write all entries, as appropriate, to the log</td></tr>	<tr>	<th class="colFirst min" scope="col">idx</th>	<th class="colOne" scope="col"><a name="VoltscriptLogging.BaseLogWriter.writeToLog.arguments"><!--   --></a>Argument</th>	<th class="colOne" scope="col">Data Type</th>	<th class="colOne attributes" scope="col">Attributes</th>	<th class="colLast comment" scope="col">Comments</th></tr><tr class="altColor"><td class="colFirst min">1</strong></td><td class="colOne"><strong>session</strong></td><td class="colOne">LogSession</td><td class="colOne attributes"></td><td class="colLast comment"><em>Current session being deleted&nbsp;</em></td></tr>			</tbody>		</table>			</li></ul><!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.initializeLog-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.initializeLog"><!--   --></a>		<h4>initializeLog</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="initializeLog method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Sub initializeLog<em>()</em></pre></th></tr>			</thead>			<tbody>	<tr class="altColor"><td class="colFirst" colspan="5"><a name="VoltscriptLogging.BaseLogWriter.initializeLog.comments"><!--   --></a>Overload this method to do any setup before processing the LogEntry objects.</td></tr>				</tbody>		</table>			</li></ul><!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.New-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.New"><!--   --></a>		<h4>New</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="New method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Sub New<em>(label As String, minLevel As Integer, maxLevel As Integer, formatter As String)</em></pre></th></tr>			</thead>			<tbody>		<tr>	<th class="colFirst min" scope="col">idx</th>	<th class="colOne" scope="col"><a name="VoltscriptLogging.BaseLogWriter.New.arguments"><!--   --></a>Argument</th>	<th class="colOne" scope="col">Data Type</th>	<th class="colOne attributes" scope="col">Attributes</th>	<th class="colLast comment" scope="col">Comments</th></tr><tr class="altColor"><td class="colFirst min">1</strong></td><td class="colOne"><strong>label</strong></td><td class="colOne">String</td><td class="colOne attributes"></td><td class="colLast comment"><em>Name for the log writer, which will be the key when added to the session&nbsp;</em></td></tr><tr class="altColor"><td class="colFirst min">2</strong></td><td class="colOne"><strong>minLevel</strong></td><td class="colOne">Integer</td><td class="colOne attributes"></td><td class="colLast comment"><em>Minimum level to log out&nbsp;</em></td></tr><tr class="altColor"><td class="colFirst min">3</strong></td><td class="colOne"><strong>maxLevel</strong></td><td class="colOne">Integer</td><td class="colOne attributes"></td><td class="colLast comment"><em>Maximum level to log out&nbsp;</em></td></tr><tr class="altColor"><td class="colFirst min">4</strong></td><td class="colOne"><strong>formatter</strong></td><td class="colOne">String</td><td class="colOne attributes"></td><td class="colLast comment"><em>A string format to log out, which can include mustache template format to inlcude LogEntry properties&nbsp;</em></td></tr>			</tbody>		</table>			</li></ul><!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.outputLogEntryMessage-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.outputLogEntryMessage"><!--   --></a>		<h4>outputLogEntryMessage</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="outputLogEntryMessage method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Sub outputLogEntryMessage<em>(message As String)</em></pre></th></tr>			</thead>			<tbody>	<tr class="altColor"><td class="colFirst" colspan="5"><a name="VoltscriptLogging.BaseLogWriter.outputLogEntryMessage.comments"><!--   --></a>Writes out a specific LogEntry (already converted to a String). Overload this message for specific implementations.</td></tr>	<tr>	<th class="colFirst min" scope="col">idx</th>	<th class="colOne" scope="col"><a name="VoltscriptLogging.BaseLogWriter.outputLogEntryMessage.arguments"><!--   --></a>Argument</th>	<th class="colOne" scope="col">Data Type</th>	<th class="colOne attributes" scope="col">Attributes</th>	<th class="colLast comment" scope="col">Comments</th></tr><tr class="altColor"><td class="colFirst min">1</strong></td><td class="colOne"><strong>message</strong></td><td class="colOne">String</td><td class="colOne attributes"></td><td class="colLast comment"><em>Message to be outputted&nbsp;</em></td></tr>			</tbody>		</table>			</li></ul><!-- Method Detail Element --><a name="VoltscriptLogging.BaseLogWriter.terminateLog-"><!--  --></a><ul class="blockList">	<li class="blockList">		<a name="VoltscriptLogging.BaseLogWriter.terminateLog"><!--   --></a>		<h4>terminateLog</h4>		<table class="methoddetail" border="0" cellpadding="3" cellspacing="0" summary="terminateLog method detail table">			<thead>				<tr><th class="colFirst" scope="col" colspan="5"><pre>Public Sub terminateLog<em>()</em></pre></th></tr>			</thead>			<tbody>	<tr class="altColor"><td class="colFirst" colspan="5"><a name="VoltscriptLogging.BaseLogWriter.terminateLog.comments"><!--   --></a>Overload this method to do any setup after processing the LogEntry objects.</td></tr>				</tbody>		</table>			</li></ul>	</li></ul>
+			</li>
+		</ul>
+	</div> 
+
+</div>
+<!-- ========= END OF CLASS DATA ========= -->
+<!-- ======= START OF BOTTOM NAVBAR ====== -->
+<div class="bottomNav">
+	<a name="navbar.bottom"><!--   --></a>
+	<div class="skipNav"><a href="#skip.navbar.bottom" title="Skip navigation links">Skip navigation links</a></div>
+	
+	<a name="navbar.bottom.firstrow"><!--   --></a>
+	<ul class="navList" title="Navigation">
+		<!--  -->
+	</ul>
+</div>
+
+<div class="subNav">
+	<ul class="navList">
+		<!-- 
+		<li><a href="prevelement (class or package)url.html" title="previous element (class or package) fqn in parent/package"><span element (class or package)="typeNameLink">Previous element (class or package) Name</span></a></li>
+		{{link_prevelement}}
+		-->
+
+		<!-- 
+		<li><a href="nextelement (class or package)url.html" title="next element (class or package) fqn in parent/package"><span element (class or package)="typeNameLink">Next element (class or package) Name</span></a></li>
+		{{link_nextelement}}
+		-->
+	</ul>
+	<ul class="navList">
+	<!-- 
+		<li><a href="../../../../index.html?url for frames" target="_top">Frames</a></li>
+		<li><a href="{{elementurl}}" target="_top">No&nbsp;Frames</a></li>
+	-->
+	</ul>
+	<ul class="navList" id="navcontent_navbar_bottom">
+	<!-- 
+		<li><a href="../../../nav-content-noframe.html">All&nbsp;Classes</a></li>
+	 -->
+	</ul>
+	
+	<div>
+		<script type="text/javascript"><!--
+		  navcontentLink = document.getElementById("navcontent_navbar_bottom");
+		  if(window==top) {
+			navcontentLink.style.display = "block";
+		  }
+		  else {
+			navcontentLink.style.display = "none";
+		  }
+		  //-->
+		</script>
+	</div>
+	
+	<div>
+		<ul class="subNavList">
+		<!-- 
+			<li>Summary:&nbsp;</li>
+			<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+			<li><a href="#method.summary">Method</a></li>
+		 -->
+		</ul>
+		<ul class="subNavList">
+		<!-- 
+			<li>Detail:&nbsp;</li>
+			<li>Field&nbsp;|&nbsp;</li>
+			<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+			<li><a href="#method.detail">Method</a></li>
+		 -->
+		</ul>
+	</div>
+	
+	<a name="skip.navbar.bottom"><!--   --></a>
+</div>
+<!-- ======== END OF BOTTOM NAVBAR ======= -->
+<p class="legalCopy"><small>Copyright &#169; <a href="https://www.hcltechsw.com/">HCL America, Inc.</a> 1999, 2023. All Rights Reserved.</small></p>
+</body>
+</html>

@@ -1,0 +1,41 @@
+Option Declare
+Option Public
+
+' Path mapped to compile when file type is changed in *THIS* repo's source code, amend as necessary
+Use "../../../src/VoltScriptLogging"
+
+Sub Initialize
+
+    Dim errType as ErrorType
+    Dim printWriter as New BaseLogWriter("Print Writer", LOG_FATAL, LOG_FATAL, "{{LEVELNAME}}: {{MESSAGE}}")
+
+    Call globalLogSession.addLogWriter(printWriter)
+
+    Call performFatalLoop()
+    If (getErrorSession().errorCount > 0) Then
+        Set errType = getErrorSession().getAndRemoveLastError()
+        While Not errType Is Nothing
+            Call globalLogSession.createLogEntry(LOG_FATAL, errType.getLogMessage(), errType.stackTrace, "")
+            Set errType = getErrorSession().getAndRemoveLastError()
+        Wend
+        Exit Sub
+    End If
+
+End Sub
+
+Sub performFatalLoop
+
+    Dim i as Integer
+    Dim errType as ErrorType
+
+    For i = 0 to 10
+        Try
+            ' Do stuff
+            Error 1001, "Generic error on loop " & i
+        Catch
+            Set errType = getErrorSession().addError()
+            If (errType.code < 1001) Then Exit Sub
+        End Try
+    Next
+
+End Sub

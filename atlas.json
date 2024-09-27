@@ -1,0 +1,47 @@
+{
+    "name": "voltscript-logging",			// REQUIRED: Enter a short name for your VoltScript project, e.g. "Demo1"
+    "description": "Classes for creating and managing logs in voltscript",	// REQUIRED: Enter a longer description, e.g. "My first demo project"
+    "displayName": "",  // A longer name to refer to the project, e.g. "Demo 1"
+    "license": "Apache 2.0",	// A license to publish the project under.
+                                // If you want this to be used by others, Apache 2.0 or MIT are recommended
+    "publisher": "HCL Software",	// Copyright owner
+    "authors": [		// REQUIRED: An array of authors, can be names or emails
+        "rocky.oliver@hcl.com",
+        "paulstephen.withers@hcl.com"
+    ],
+    "library": "",		// Name of the repo or folder container releases
+    "version":"1.0.0",	// REQUIRED: Current version for this project, used with dependency management to find the modules
+    "sourceDir": "src",	// REQUIRED: Directory where mainScripts are located
+    "testDir": "test",	// Directory where unitTestScripts and integrationTestScripts are located
+    "libsDir": "libs",	// Directory where VoltScript Library Modules and shared scripts are located
+    "vsesDir": "vses",  // Directory where VoltScript Extensions are located
+    "mainScripts": [	// REQUIRED: Main scripts with Sub Initialize. Used to sync any additional files between
+                        // sourceDir and testDir, if libsDir not set
+        "main.vss"
+    ],
+    "unitTestScripts": [],	// Unit test scripts. Used to sync any additional files between sourceDir and testDir, if libsDir not set
+    "integrationTestScripts": [],	// Integration test scripts. Used to sync any additional files between 
+                                        // sourceDir and testDir, if libsDir not set
+    "repositories": [		// Repositories in which to search for any dependencies
+        {
+            "id": "volt-mx-marketplace",
+            "type": "marketplace",
+            "url": "https://community.hclvoltmx.com/marketplace/asset"
+        },
+        {
+            "id": "hcl-github",
+            "type": "github",
+            "url": "https://api.github.com/repos/HCL-TECH-SOFTWARE"
+        }
+    ],
+    "dependencies": [
+    ],
+    "testDependencies": [
+        {
+            "library": "voltscript-testing",
+            "module": "VoltScriptTesting.vss",
+            "version": "1.0.1",
+            "repository": "hcl-github"
+        }
+    ]
+}

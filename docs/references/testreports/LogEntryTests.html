@@ -1,0 +1,147 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <style>
+body {
+  font-family: arial, sans-serif;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+.overall {
+  margin-bottom: 5px;
+}
+.overall::before {
+  display: table;
+  content: "";
+}
+.overall::after {
+  display: table;
+  content: "";
+}
+
+.container {
+  margin: 0 auto;
+  max-width: 1170px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.row {
+  margin-bottom: 15px;
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+.overall-passed {
+  background-color: #009933;
+}
+
+.overall div {
+  width:33.33333333%;
+  float:left;
+}
+
+.overall-failed {
+  background-color: #cc3300;
+}
+
+.tests {
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+.tests .summary {
+  width: 49%;
+  padding-right: 5px;
+  float:left;
+}
+
+.tests .details {
+  width: 50%;
+  float:left;
+}
+
+.passed {
+  color: #009933;
+  cursor: pointer;
+}
+.passed::before {
+  content: '\2713'; /* tick */
+}
+
+.failed {
+  color: #003399;
+  cursor: pointer;
+}
+.failed::before {
+  content: '\2716' /* cross */
+}
+
+.error {
+  color: #cc3300;
+  cursor: pointer;
+}
+.error::before {
+  content: '\2716' /* cross */
+}
+
+.highlight {
+  background-color: #3333cc;
+  color: #ffffff;
+}
+    </style>
+    <script>
+      let elemCount = 25;
+      function toggle(elemNum) {
+        for (let i = 1; i <= elemCount; i++) {
+          let elem = document.getElementById("test" + i);
+          elem.classList.remove("highlight");
+          let elemDetail = document.getElementById("testDetail" + i);
+          elemDetail.style = "display:none";
+        }
+        let highlightElem = document.getElementById("test" + elemNum);
+        highlightElem.classList.add("highlight");
+        let showElem = document.getElementById("testDetail" + elemNum);
+        showElem.style = "display:block";
+      }
+    </script>
+  </head>
+
+
+<body>
+    <div class="container">
+    <div class="row">
+      <h1>Log Entry Tests</h1>
+      <div>Finished after: 0 seconds</div>
+    </div>
+    <div class="overall row">
+      <div>Runs: 25</div>
+      <div>Errors: 0</div>
+      <div>Fails: 0</div>
+    </div>
+    <br/>
+    <div class="overall-passed row">&nbsp;</div>
+
+    <div class="tests">
+
+<div class="summary"><div id="test1" class=Passed onclick="toggle(1)">&nbsp;Test creating new log entry without args throws error</div><div id="test2" class=Passed onclick="toggle(2)">&nbsp;Test error was 156</div><div id="test3" class=Passed onclick="toggle(3)">&nbsp;Test error message was correct</div><div id="test4" class=Passed onclick="toggle(4)">&nbsp;Test creating new log entry with invalid level throws error</div><div id="test5" class=Passed onclick="toggle(5)">&nbsp;Test error with bad level was 156</div><div id="test6" class=Passed onclick="toggle(6)">&nbsp;Test error message with bad level was correct</div><div id="test7" class=Passed onclick="toggle(7)">&nbsp;Test log entry message</div><div id="test8" class=Passed onclick="toggle(8)">&nbsp;Test log entry timestamp</div><div id="test9" class=Passed onclick="toggle(9)">&nbsp;Test log entry timestamp matches now</div><div id="test10" class=Passed onclick="toggle(10)">&nbsp;Test libraryname UNITTESTS</div><div id="test11" class=Passed onclick="toggle(11)">&nbsp;Test log entry ID</div><div id="test12" class=Passed onclick="toggle(12)">&nbsp;Test log entry ID starts with UNITTESTS</div><div id="test13" class=Passed onclick="toggle(13)">&nbsp;Test log entry level</div><div id="test14" class=Passed onclick="toggle(14)">&nbsp;Test log entry extended info</div><div id="test15" class=Passed onclick="toggle(15)">&nbsp;Test log entry className</div><div id="test16" class=Passed onclick="toggle(16)">&nbsp;Test foo and bar entry ids different</div><div id="test17" class=Passed onclick="toggle(17)">&nbsp;Test foo entry className</div><div id="test18" class=Passed onclick="toggle(18)">&nbsp;Check level set correctly</div><div id="test19" class=Passed onclick="toggle(19)">&nbsp;Check two entries</div><div id="test20" class=Passed onclick="toggle(20)">&nbsp;Check bar ID = second key</div><div id="test21" class=Passed onclick="toggle(21)">&nbsp;Check bar levelname</div><div id="test22" class=Passed onclick="toggle(22)">&nbsp;Check retrieving by ID works</div><div id="test23" class=Passed onclick="toggle(23)">&nbsp;Check level when retrieving bar by ID</div><div id="test24" class=Passed onclick="toggle(24)">&nbsp;Check level when retrieving first entry from Map</div><div id="test25" class=Passed onclick="toggle(25)">&nbsp;Check log entries cleared</div></div>
+<div class="details"><div id="testDetail1" style="display:none"></div><div id="testDetail2" style="display:none"></div><div id="testDetail3" style="display:none"></div><div id="testDetail4" style="display:none"></div><div id="testDetail5" style="display:none"></div><div id="testDetail6" style="display:none"></div><div id="testDetail7" style="display:none"></div><div id="testDetail8" style="display:none"></div><div id="testDetail9" style="display:none"></div><div id="testDetail10" style="display:none"></div><div id="testDetail11" style="display:none"></div><div id="testDetail12" style="display:none"></div><div id="testDetail13" style="display:none"></div><div id="testDetail14" style="display:none"></div><div id="testDetail15" style="display:none"></div><div id="testDetail16" style="display:none"></div><div id="testDetail17" style="display:none"></div><div id="testDetail18" style="display:none"></div><div id="testDetail19" style="display:none"></div><div id="testDetail20" style="display:none"></div><div id="testDetail21" style="display:none"></div><div id="testDetail22" style="display:none"></div><div id="testDetail23" style="display:none"></div><div id="testDetail24" style="display:none"></div><div id="testDetail25" style="display:none"></div></div>
+
+    </div>
+  </div>
+  </body>
+</html>

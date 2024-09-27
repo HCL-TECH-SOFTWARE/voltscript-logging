@@ -1,0 +1,7 @@
+nav:
+    - index.md
+    - logging.md
+    - uselogwriter.md
+    - logwriter.md
+    - errortracking.md
+    - archipelago.md
