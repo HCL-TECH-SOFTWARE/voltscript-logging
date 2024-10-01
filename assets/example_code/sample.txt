@@ -1,0 +1,35 @@
+Option Declare
+Option Public
+
+' Path mapped to compile when file type is changed in *THIS* repo's source code, amend as necessary
+Use "../../../src/VoltScriptLogging"
+
+Sub Initialize
+
+    Dim i as Integer
+
+    Do
+        Call doProcessing(i++)
+        If (Not IsEmpty(globalLogSession.getLogEntriesByLevel(LOG_ERROR, LOG_ERROR))) Then
+            Print "Exiting at " & --i
+            Exit Sub
+        End If
+    Loop
+
+End Sub
+
+Function doProcessing(passedVal as Integer) as Boolean
+
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered doProcessing", "", "")
+    Try
+        If (passedVal > 4) Then
+            Error 4000, "Invalid entry"
+        End If
+        Call globalLogSession.createLogEntry(LOG_DEBUG, "Ran doProcessing successfully", "", "")
+    Catch
+        Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Value passed: " & passedVal, "")
+    Finally
+        Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished doProcessing", "", "")
+    End Try
+
+End Function

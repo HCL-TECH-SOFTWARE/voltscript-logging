@@ -1,0 +1,29 @@
+' Path mapped to compile when file type is changed in *THIS* repo's source code, amend as necessary
+Use "../../../src/VoltScriptLogging"
+
+Sub Initialize
+
+    Dim stringFormat as New BaseLogWriter("stringFormat", LOG_DEBUG, LOG_FATAL, "{{LEVELNAME}}: {{MESSAGE}}")
+    Dim jsonFormat  as New BaseLogWriter("jsonFormat", LOG_DEBUG, LOG_FATAL, |{
+    "level": "{{LEVELNAME}}",
+    "message": "{{MESSAGE}}",
+    "extendedInfo": "{{EXTENDEDINFO}}",
+    "stack": "{{STACKTRACE}}"
+}|)
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered Initialize", "", "")
+
+    Call globalLogSession.addLogWriter(stringFormat)
+    Call globalLogSession.addLogWriter(jsonFormat)
+
+    Call globalLogSession.createLogEntry(LOG_INFO, "Added log writers", "string and json", "")
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished Initialize", "", "")
+
+End Sub
+
+Sub Terminate
+
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered Terminate", "", "")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Terminating", "Note this fires before Delete in VoltScriptLogging", "")
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished Terminate", "", "")
+
+End Sub

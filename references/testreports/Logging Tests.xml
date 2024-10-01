@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="Logging Tests" tests="79" time="240919T110107" failures="0" errors="0">
+  <testsuite name="Thread Tests" time="0" displayname="Thread Tests" id="[engine:testsuite-voltscript]/[Thread Tests]">
+    <testcase name="Check delimiter is LF" classname="Thread Tests" time="0" displayname="Check delimiter is LF" id="[engine:testsuite-voltscript]/[Thread Tests]/[Check delimiter is LF]">
+    </testcase>
+    <testcase name="Check empty elements in stack trace" classname="Thread Tests" time="0" displayname="Check empty elements in stack trace" id="[engine:testsuite-voltscript]/[Thread Tests]/[Check empty elements in stack trace]">
+    </testcase>
+    <testcase name="Check empty elements removed from stack trace" classname="Thread Tests" time="0" displayname="Check empty elements removed from stack trace" id="[engine:testsuite-voltscript]/[Thread Tests]/[Check empty elements removed from stack trace]">
+    </testcase>
+    <testcase name="Check no leading or trailing spaces in stack trace" classname="Thread Tests" time="0" displayname="Check no leading or trailing spaces in stack trace" id="[engine:testsuite-voltscript]/[Thread Tests]/[Check no leading or trailing spaces in stack trace]">
+    </testcase>
+  </testsuite>
+  <testsuite name="Session Tests" time="0" displayname="Session Tests" id="[engine:testsuite-voltscript]/[Session Tests]">
+    <testcase name="Test getting session" classname="Session Tests" time="0" displayname="Test getting session" id="[engine:testsuite-voltscript]/[Session Tests]/[Test getting session]">
+    </testcase>
+    <testcase name="Test session id is not empty" classname="Session Tests" time="0" displayname="Test session id is not empty" id="[engine:testsuite-voltscript]/[Session Tests]/[Test session id is not empty]">
+    </testcase>
+    <testcase name="Test last entry is nothing" classname="Session Tests" time="0" displayname="Test last entry is nothing" id="[engine:testsuite-voltscript]/[Session Tests]/[Test last entry is nothing]">
+    </testcase>
+    <testcase name="Test log entries count is 0" classname="Session Tests" time="0" displayname="Test log entries count is 0" id="[engine:testsuite-voltscript]/[Session Tests]/[Test log entries count is 0]">
+    </testcase>
+    <testcase name="Test creating new session throws error" classname="Session Tests" time="0" displayname="Test creating new session throws error" id="[engine:testsuite-voltscript]/[Session Tests]/[Test creating new session throws error]">
+    </testcase>
+    <testcase name="Test error was 156" classname="Session Tests" time="0" displayname="Test error was 156" id="[engine:testsuite-voltscript]/[Session Tests]/[Test error was 156]">
+    </testcase>
+    <testcase name="Test error message was correct" classname="Session Tests" time="0" displayname="Test error message was correct" id="[engine:testsuite-voltscript]/[Session Tests]/[Test error message was correct]">
+    </testcase>
+    <testcase name="Test session id is different after reset" classname="Session Tests" time="0" displayname="Test session id is different after reset" id="[engine:testsuite-voltscript]/[Session Tests]/[Test session id is different after reset]">
+    </testcase>
+  </testsuite>
+  <testsuite name="Log Entry Tests" time="0" displayname="Log Entry Tests" id="[engine:testsuite-voltscript]/[Log Entry Tests]">
+    <testcase name="Test creating new log entry without args throws error" classname="Log Entry Tests" time="0" displayname="Test creating new log entry without args throws error" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test creating new log entry without args throws error]">
+    </testcase>
+    <testcase name="Test error was 156" classname="Log Entry Tests" time="0" displayname="Test error was 156" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test error was 156]">
+    </testcase>
+    <testcase name="Test error message was correct" classname="Log Entry Tests" time="0" displayname="Test error message was correct" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test error message was correct]">
+    </testcase>
+    <testcase name="Test creating new log entry with invalid level throws error" classname="Log Entry Tests" time="0" displayname="Test creating new log entry with invalid level throws error" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test creating new log entry with invalid level throws error]">
+    </testcase>
+    <testcase name="Test error with bad level was 156" classname="Log Entry Tests" time="0" displayname="Test error with bad level was 156" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test error with bad level was 156]">
+    </testcase>
+    <testcase name="Test error message with bad level was correct" classname="Log Entry Tests" time="0" displayname="Test error message with bad level was correct" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test error message with bad level was correct]">
+    </testcase>
+    <testcase name="Test log entry message" classname="Log Entry Tests" time="0" displayname="Test log entry message" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test log entry message]">
+    </testcase>
+    <testcase name="Test log entry timestamp" classname="Log Entry Tests" time="0" displayname="Test log entry timestamp" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test log entry timestamp]">
+    </testcase>
+    <testcase name="Test log entry timestamp matches now" classname="Log Entry Tests" time="0" displayname="Test log entry timestamp matches now" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test log entry timestamp matches now]">
+    </testcase>
+    <testcase name="Test libraryname UNITTESTS" classname="Log Entry Tests" time="0" displayname="Test libraryname UNITTESTS" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test libraryname UNITTESTS]">
+    </testcase>
+    <testcase name="Test log entry ID" classname="Log Entry Tests" time="0" displayname="Test log entry ID" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test log entry ID]">
+    </testcase>
+    <testcase name="Test log entry ID starts with UNITTESTS" classname="Log Entry Tests" time="0" displayname="Test log entry ID starts with UNITTESTS" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test log entry ID starts with UNITTESTS]">
+    </testcase>
+    <testcase name="Test log entry level" classname="Log Entry Tests" time="0" displayname="Test log entry level" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test log entry level]">
+    </testcase>
+    <testcase name="Test log entry extended info" classname="Log Entry Tests" time="0" displayname="Test log entry extended info" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test log entry extended info]">
+    </testcase>
+    <testcase name="Test log entry className" classname="Log Entry Tests" time="0" displayname="Test log entry className" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test log entry className]">
+    </testcase>
+    <testcase name="Test foo and bar entry ids different" classname="Log Entry Tests" time="0" displayname="Test foo and bar entry ids different" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test foo and bar entry ids different]">
+    </testcase>
+    <testcase name="Test foo entry className" classname="Log Entry Tests" time="0" displayname="Test foo entry className" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Test foo entry className]">
+    </testcase>
+    <testcase name="Check level set correctly" classname="Log Entry Tests" time="0" displayname="Check level set correctly" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Check level set correctly]">
+    </testcase>
+    <testcase name="Check two entries" classname="Log Entry Tests" time="0" displayname="Check two entries" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Check two entries]">
+    </testcase>
+    <testcase name="Check bar ID = second key" classname="Log Entry Tests" time="0" displayname="Check bar ID = second key" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Check bar ID = second key]">
+    </testcase>
+    <testcase name="Check bar levelname" classname="Log Entry Tests" time="0" displayname="Check bar levelname" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Check bar levelname]">
+    </testcase>
+    <testcase name="Check retrieving by ID works" classname="Log Entry Tests" time="0" displayname="Check retrieving by ID works" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Check retrieving by ID works]">
+    </testcase>
+    <testcase name="Check level when retrieving bar by ID" classname="Log Entry Tests" time="0" displayname="Check level when retrieving bar by ID" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Check level when retrieving bar by ID]">
+    </testcase>
+    <testcase name="Check level when retrieving first entry from Map" classname="Log Entry Tests" time="0" displayname="Check level when retrieving first entry from Map" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Check level when retrieving first entry from Map]">
+    </testcase>
+    <testcase name="Check log entries cleared" classname="Log Entry Tests" time="0" displayname="Check log entries cleared" id="[engine:testsuite-voltscript]/[Log Entry Tests]/[Check log entries cleared]">
+    </testcase>
+  </testsuite>
+  <testsuite name="Log Collection Tests" time="0" displayname="Log Collection Tests" id="[engine:testsuite-voltscript]/[Log Collection Tests]">
+    <testcase name="Test log entries count is 1" classname="Log Collection Tests" time="0" displayname="Test log entries count is 1" id="[engine:testsuite-voltscript]/[Log Collection Tests]/[Test log entries count is 1]">
+    </testcase>
+    <testcase name="Test log entries count is 4" classname="Log Collection Tests" time="0" displayname="Test log entries count is 4" id="[engine:testsuite-voltscript]/[Log Collection Tests]/[Test log entries count is 4]">
+    </testcase>
+    <testcase name="Test log fatal entries count is 1" classname="Log Collection Tests" time="0" displayname="Test log fatal entries count is 1" id="[engine:testsuite-voltscript]/[Log Collection Tests]/[Test log fatal entries count is 1]">
+    </testcase>
+    <testcase name="Test log info entries count is 1" classname="Log Collection Tests" time="0" displayname="Test log info entries count is 1" id="[engine:testsuite-voltscript]/[Log Collection Tests]/[Test log info entries count is 1]">
+    </testcase>
+    <testcase name="Test log debug entries count is 0" classname="Log Collection Tests" time="0" displayname="Test log debug entries count is 0" id="[engine:testsuite-voltscript]/[Log Collection Tests]/[Test log debug entries count is 0]">
+    </testcase>
+  </testsuite>
+  <testsuite name="Log Function Tests" time="0" displayname="Log Function Tests" id="[engine:testsuite-voltscript]/[Log Function Tests]">
+    <testcase name="Test propertyNames elements" classname="Log Function Tests" time="0" displayname="Test propertyNames elements" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test propertyNames elements]">
+    </testcase>
+    <testcase name="Test property STACKTRACE is not empty" classname="Log Function Tests" time="0" displayname="Test property STACKTRACE is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property STACKTRACE is not empty]">
+    </testcase>
+    <testcase name="Test property LEVELNAME is not empty" classname="Log Function Tests" time="0" displayname="Test property LEVELNAME is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property LEVELNAME is not empty]">
+    </testcase>
+    <testcase name="Test property ENTRYID is not empty" classname="Log Function Tests" time="0" displayname="Test property ENTRYID is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property ENTRYID is not empty]">
+    </testcase>
+    <testcase name="Test property LEVEL is not empty" classname="Log Function Tests" time="0" displayname="Test property LEVEL is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property LEVEL is not empty]">
+    </testcase>
+    <testcase name="Test property MESSAGE is not empty" classname="Log Function Tests" time="0" displayname="Test property MESSAGE is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property MESSAGE is not empty]">
+    </testcase>
+    <testcase name="Test property CLASSNAME is not empty" classname="Log Function Tests" time="0" displayname="Test property CLASSNAME is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property CLASSNAME is not empty]">
+    </testcase>
+    <testcase name="Test property LINENUM is not empty" classname="Log Function Tests" time="0" displayname="Test property LINENUM is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property LINENUM is not empty]">
+    </testcase>
+    <testcase name="Test property LIBRARYNAME is not empty" classname="Log Function Tests" time="0" displayname="Test property LIBRARYNAME is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property LIBRARYNAME is not empty]">
+    </testcase>
+    <testcase name="Test property METHODNAME is not empty" classname="Log Function Tests" time="0" displayname="Test property METHODNAME is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property METHODNAME is not empty]">
+    </testcase>
+    <testcase name="Test property TIMESTAMP is not empty" classname="Log Function Tests" time="0" displayname="Test property TIMESTAMP is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property TIMESTAMP is not empty]">
+    </testcase>
+    <testcase name="Test property EXTINFO is not empty" classname="Log Function Tests" time="0" displayname="Test property EXTINFO is not empty" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test property EXTINFO is not empty]">
+    </testcase>
+    <testcase name="Test getPropertyValue throws error with bad property" classname="Log Function Tests" time="0" displayname="Test getPropertyValue throws error with bad property" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test getPropertyValue throws error with bad property]">
+    </testcase>
+    <testcase name="Test error was 1400" classname="Log Function Tests" time="0" displayname="Test error was 1400" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test error was 1400]">
+    </testcase>
+    <testcase name="Test error message was correct" classname="Log Function Tests" time="0" displayname="Test error message was correct" id="[engine:testsuite-voltscript]/[Log Function Tests]/[Test error message was correct]">
+    </testcase>
+  </testsuite>
+  <testsuite name="Base Writer Tests" time="0" displayname="Base Writer Tests" id="[engine:testsuite-voltscript]/[Base Writer Tests]">
+    <testcase name="Test base writer label" classname="Base Writer Tests" time="0" displayname="Test base writer label" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test base writer label]">
+    </testcase>
+    <testcase name="Test base writer max level" classname="Base Writer Tests" time="0" displayname="Test base writer max level" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test base writer max level]">
+    </testcase>
+    <testcase name="Test base writer formatter" classname="Base Writer Tests" time="0" displayname="Test base writer formatter" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test base writer formatter]">
+    </testcase>
+    <testcase name="Test base writer format string" classname="Base Writer Tests" time="0" displayname="Test base writer format string" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test base writer format string]">
+    </testcase>
+    <testcase name="Test formatted string" classname="Base Writer Tests" time="0" displayname="Test formatted string" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test formatted string]">
+    </testcase>
+    <testcase name="Test log writer output when empty" classname="Base Writer Tests" time="0" displayname="Test log writer output when empty" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test log writer output when empty]">
+    </testcase>
+    <testcase name="Test output coll is nothing" classname="Base Writer Tests" time="0" displayname="Test output coll is nothing" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test output coll is nothing]">
+    </testcase>
+    <testcase name="Test log writer added to session" classname="Base Writer Tests" time="0" displayname="Test log writer added to session" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test log writer added to session]">
+    </testcase>
+    <testcase name="Test log writer output" classname="Base Writer Tests" time="0" displayname="Test log writer output" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test log writer output]">
+    </testcase>
+    <testcase name="Test log writer output count is 6" classname="Base Writer Tests" time="0" displayname="Test log writer output count is 6" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test log writer output count is 6]">
+    </testcase>
+    <testcase name="Test log writer output count is 1" classname="Base Writer Tests" time="0" displayname="Test log writer output count is 1" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test log writer output count is 1]">
+    </testcase>
+    <testcase name="Test log writer output count is 2" classname="Base Writer Tests" time="0" displayname="Test log writer output count is 2" id="[engine:testsuite-voltscript]/[Base Writer Tests]/[Test log writer output count is 2]">
+    </testcase>
+  </testsuite>
+  <testsuite name="Error Tests" time="0" displayname="Error Tests" id="[engine:testsuite-voltscript]/[Error Tests]">
+    <testcase name="Test error count is 1" classname="Error Tests" time="0" displayname="Test error count is 1" id="[engine:testsuite-voltscript]/[Error Tests]/[Test error count is 1]">
+    </testcase>
+    <testcase name="Test error message is correct" classname="Error Tests" time="0" displayname="Test error message is correct" id="[engine:testsuite-voltscript]/[Error Tests]/[Test error message is correct]">
+    </testcase>
+    <testcase name="Test error line is correct" classname="Error Tests" time="0" displayname="Test error line is correct" id="[engine:testsuite-voltscript]/[Error Tests]/[Test error line is correct]">
+    </testcase>
+    <testcase name="Test error code is correct" classname="Error Tests" time="0" displayname="Test error code is correct" id="[engine:testsuite-voltscript]/[Error Tests]/[Test error code is correct]">
+    </testcase>
+    <testcase name="Test error message for logs" classname="Error Tests" time="0" displayname="Test error message for logs" id="[engine:testsuite-voltscript]/[Error Tests]/[Test error message for logs]">
+    </testcase>
+    <testcase name="Test script name" classname="Error Tests" time="0" displayname="Test script name" id="[engine:testsuite-voltscript]/[Error Tests]/[Test script name]">
+    </testcase>
+    <testcase name="Test method name" classname="Error Tests" time="0" displayname="Test method name" id="[engine:testsuite-voltscript]/[Error Tests]/[Test method name]">
+    </testcase>
+    <testcase name="Test error count is 0" classname="Error Tests" time="0" displayname="Test error count is 0" id="[engine:testsuite-voltscript]/[Error Tests]/[Test error count is 0]">
+    </testcase>
+    <testcase name="Test reset error session" classname="Error Tests" time="0" displayname="Test reset error session" id="[engine:testsuite-voltscript]/[Error Tests]/[Test reset error session]">
+    </testcase>
+    <testcase name="Test error count is 0 after reset" classname="Error Tests" time="0" displayname="Test error count is 0 after reset" id="[engine:testsuite-voltscript]/[Error Tests]/[Test error count is 0 after reset]">
+    </testcase>
+  </testsuite>
+</testrun>
