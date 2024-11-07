@@ -65,7 +65,7 @@ This code will write out a pretty-printed JSON object containing the level name,
 Dim jsonFormat  as New BaseLogWriter("jsonFormat", LOG_DEBUG, LOG_FATAL, |{
     "level": "{{LEVELNAME}}",
     "message": "{{MESSAGE}}",
-    "extendedInfo": "{{EXTENDEDINFO}}",
+    "extInfo": "{{EXTINFO}}",
     "stack": "{{STACKTRACE}}"
 }|)
 ```

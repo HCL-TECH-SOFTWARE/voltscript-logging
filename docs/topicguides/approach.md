@@ -41,11 +41,11 @@ erDiagram
         Integer level
         String formatter
     }
-    ErrorSession ||--o{ ErrorType : contains
+    ErrorSession ||--o{ ErrorEntity : contains
     ErrorSession {
         Integer errorCount
     }
-    ErrorType {
+    ErrorEntity {
         Integer code
         String message
         Integer lineNum
@@ -59,7 +59,7 @@ The LogSession contains zero to many LogEntries in a **List**. Each LogEntry cor
 
 The LogSession also contains zero to many LogWriters in a **List**. The LogWriter defines the minimum log level it should output, a format for what it should write, and a function to write each matching LogEntry.
 
-The ErrorSession contains zero to many ErrorTypes in an **array**.
+The ErrorSession contains zero to many ErrorEntitys in an **array**.
 
 ## Write log entries
 

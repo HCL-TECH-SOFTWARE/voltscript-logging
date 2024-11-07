@@ -6,7 +6,7 @@ Use "../libs/VoltScriptTesting"
 
 Private localColl() as String
 Private TEST_DELETE as Boolean
-Const errLine = 91      ' Update if error tests move
+Const errLine = 87      ' Update if error tests move
 
 Class TestLogWriter as BaseLogWriter
     Public outputColl as Variant
@@ -28,10 +28,6 @@ Class TestLogWriter as BaseLogWriter
             If (outputColl(0) != "") Then Redim Preserve outputColl(UBound(outputColl) + 1)
             outputColl(UBound(outputColl)) = message
         End If
-    End Sub
-
-    Public Sub enableDebug()
-        Me.DEBUG_PRINT = True
     End Sub
 
 End Class
@@ -85,12 +81,12 @@ Function testErrors(testRunner as TestRunner) as Boolean
 
     Dim testSuite as New TestSuite("Error Tests")
     Call testRunner.addTestSuite(testSuite)
-    Dim errObj as ErrorType
+    Dim errObj as ErrorEntity 
 
     Try
         Error 1000, "Test Error"
     Catch
-        Set errObj = getErrorSession().addError()
+        Set errObj = getErrorSession().addError(|testclass|)
     End Try
 
     Call testSuite.describe("Test error count is 1").assertEqualsInteger(1, getErrorSession().errorCount)
@@ -99,18 +95,15 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Call testSuite.describe("Test error code is correct").assertEqualsInteger(1000, getErrorSession().errors(0).code)
 
     Dim expected as String
-    expected = "Error Test Error (1000) on line " & errLine
+    expected = "Error 1000, Test Error at line " & errLine
     Call testSuite.describe("Test error message for logs").assertEqualsString(expected, getErrorSession().errors(0).getLogMessage(), True)
-    Call testSuite.describe("Test script name").assertEqualsString("UNITTESTS", getErrorSession().errors(0).scriptName, True)
+    Call testSuite.describe("Test script name").assertEqualsString("UNITTESTS", getErrorSession().errors(0).libraryName, True)
     Call testSuite.describe("Test method name").assertEqualsString("testErrors", getErrorSession().errors(0).methodName, True)
-
-    Call getErrorSession().getAndRemoveLastError()
-    Call testSuite.describe("Test error count is 0").assertEqualsInteger(0, getErrorSession().errorCount)
 
     Try
         Error 1000, "Test Error"
     Catch
-        Set errObj = getErrorSession().addError()
+        Set errObj = getErrorSession().addError(||)
     End Try
     Call testSuite.describe("Test reset error session")
     Try
@@ -197,7 +190,7 @@ Function runSessionTests(testRunner as TestRunner) as Boolean
     Catch
         Call testSuite.addResult(True, "")
         Call testSuite.describe("Test error was 156").assertEqualsInteger(156, Err())
-        Call testSuite.describe("Test error message was correct").assertEqualsString("Use globalLogSession to get the LogSession object", StrRight(Error(), ": "), True)
+        Call testSuite.describe("Test error message was correct").assertEqualsString("Operation Prohibited. Use globalLogSession to get the LogSession object.  ", StrRight(Error(), ": "), True)
     End Try
     
     Dim currId as String
@@ -215,7 +208,6 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
     Dim foo as LogEntry
     Dim bar as LogEntry
     Call testRunner.addTestSuite(logEntrySuite)
-
     Call logEntrySuite.describe("Test creating new log entry without args throws error")
     Try
         Execute |Set foo = New LogEntry()|
@@ -250,13 +242,17 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
     Call logEntrySuite.describe("Test log entry className").assertEqualsString("", foo.className, True)
 
     Set foo = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "TestClass")
+
+    ' bar is the last entry created in the session
     Set bar = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "TestClass")
     Call logEntrySuite.describe("Test foo and bar entry ids different").assertNotEqualString(foo.entryID, bar.entryID)
     Call logEntrySuite.describe("Test foo entry className").assertEqualsString("TestClass", foo.className, True)
     Call logEntrySuite.describe("Check level set correctly").assertEqualsInteger(LOG_FATAL, foo.level)
     Call logEntrySuite.describe("Check two entries").assertEqualsInteger(2, globalLogSession.entryCount)
-    Call logEntrySuite.describe("Check bar ID = second key").assertEqualsString(bar.entryID, CStr(globalLogSession.logEntries(1).entryID), True)
+
+    Call logEntrySuite.describe("Check bar ID = second ID").assertEqualsString(bar.entryID, globalLogSession.entryIDs(1), True)
     Call logEntrySuite.describe("Check bar levelname").assertEqualsString("FATAL", bar.levelName, True)
+    Call logEntrySuite.describe("Check bar is the LastEntry").assertEqualsString(bar.entryID, globalLogSession.lastEntry.entryID, True)
 
     Dim id as String
     id = bar.entryID
@@ -266,8 +262,12 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
     If bar is Nothing Then Exit Function
     Call logEntrySuite.describe("Check level when retrieving bar by ID").assertEqualsInteger(LOG_FATAL, bar.level)
 
-    Set bar = globalLogSession.logEntries(1)
-    Call logEntrySuite.describe("Check level when retrieving first entry from Map").assertEqualsInteger(LOG_FATAL, bar.level)
+    id = globalLogSession.entryIDs(1) 
+    Call logEntrySuite.describe("Check retrieving second ID is not Blank").assertNotEqualString("", id)
+    Call logEntrySuite.describe("Check retrieved second ID = bar ID").assertEqualsString(id, bar.entryID, True) 
+
+    Set bar = globalLogSession.getLogEntryById(id)
+    Call logEntrySuite.describe("Check level after retrieving bar by ID").assertEqualsInteger(LOG_FATAL, bar.level)
 
     Call globalLogSession.reset()
     Call logEntrySuite.describe("Check log entries cleared").assertEqualsInteger(0, globalLogSession.entryCount)
@@ -304,25 +304,25 @@ Function logFunctionTests(testRunner as TestRunner) as Boolean
     Dim logFunctionSuite as New TestSuite("Log Function Tests")
     Call testRunner.addTestSuite(logFunctionSuite)
 
-    Call logFunctionSuite.describe("Test propertyNames elements").assertEqualsLong(10, UBound(getPropertyNames()))
+    Call logFunctionSuite.describe("Test LogEntry Property Names elements").assertEqualsLong(11, UBound(getLogEntryPropertyNames()))
     
     Dim i as Integer
     Dim prop as String
     Dim logEntry as LogEntry
     Set logEntry = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "TestClass")
-    For i = 0 To UBound(getPropertyNames())
-        prop = getPropertyNames()(i)
-        Call logFunctionSuite.describe("Test property " & prop & " is not empty").assertNotEqualString("", CStr(getPropertyValue(logEntry, prop)))
+    For i = 0 To UBound(getLogEntryPropertyNames())
+        prop = getLogEntryPropertyNames()(i)
+        Call logFunctionSuite.describe("Test property " & prop & " is not empty").assertNotEqualString("", CStr(logEntry.getPropertyValue(prop)))
     Next
 
     Try
         Call logFunctionSuite.describe("Test getPropertyValue throws error with bad property")
-        Call getPropertyValue(logEntry, "BADPROPERTY")
+        Call logEntry.getPropertyValue("BADPROPERTY")
         Call logFunctionSuite.addResult(False, "getPropertyValue did not throw error")
     Catch
         Call logFunctionSuite.addResult(True, "")
-        Call LogFunctionSuite.describe("Test error was 1400").assertEqualsInteger(1400, Err())
-        Call logFunctionSuite.describe("Test error message was correct").assertEqualsString("Invalid property name passed: BADPROPERTY", Error(), True)
+        Call LogFunctionSuite.describe("Test error was 1195").assertEqualsInteger(1195, Err())
+        Call logFunctionSuite.describe("Test error message was correct").assertEqualsString("A passed parameter is invalid.  propertyName: BADPROPERTY", Error(), True)
     End Try
 
     Return logFunctionSuite.ranSuccessfully()

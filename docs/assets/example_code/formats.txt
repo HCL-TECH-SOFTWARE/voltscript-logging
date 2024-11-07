@@ -7,7 +7,7 @@ Sub Initialize
     Dim jsonFormat  as New BaseLogWriter("jsonFormat", LOG_DEBUG, LOG_FATAL, |{
     "level": "{{LEVELNAME}}",
     "message": "{{MESSAGE}}",
-    "extendedInfo": "{{EXTENDEDINFO}}",
+    "extInfo": "{{EXTINFO}}",
     "stack": "{{STACKTRACE}}"
 }|)
     Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered Initialize", "", "")

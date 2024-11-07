@@ -5,20 +5,21 @@ Option Public
 Use "../../../src/VoltScriptLogging"
 
 Sub Initialize
+    Dim errors as Variant 
+    Dim ee as ErrorEntity
 
-    Dim errType as ErrorType
-    Dim printWriter as New BaseLogWriter("Print Writer", LOG_FATAL, LOG_FATAL, "{{LEVELNAME}}: {{MESSAGE}}")
-
-    Call globalLogSession.addLogWriter(printWriter)
+    ' Additional code required here to add a LogWriter, or nothing gets written out!
 
     Call performFatalLoop()
+    ' Print "Error count: " & getErrorSession().errorCount 
+
     If (getErrorSession().errorCount > 0) Then
-        Set errType = getErrorSession().getAndRemoveLastError()
-        While Not errType Is Nothing
-            Call globalLogSession.createLogEntry(LOG_FATAL, errType.getLogMessage(), errType.stackTrace, "")
-            Set errType = getErrorSession().getAndRemoveLastError()
-        Wend
-        Exit Sub
+        errors = getErrorSession().errors 
+        Forall element in errors
+            Set ee = element
+            ' Call ee.printSummary() 
+            Call globalLogSession.createLogEntry(LOG_FATAL, ee.getLogMessage(), ee.stackTrace, "")
+        End Forall
     End If
 
 End Sub
@@ -26,15 +27,14 @@ End Sub
 Sub performFatalLoop
 
     Dim i as Integer
-    Dim errType as ErrorType
+    Dim ee as ErrorEntity
 
     For i = 0 to 10
         Try
             ' Do stuff
-            Error 1001, "Generic error on loop " & i
+            Error 1000, "Generic Error on loop " & i
         Catch
-            Set errType = getErrorSession().addError()
-            If (errType.code < 1001) Then Exit Sub
+            Set ee = getErrorSession().addError(||)
         End Try
     Next
 
