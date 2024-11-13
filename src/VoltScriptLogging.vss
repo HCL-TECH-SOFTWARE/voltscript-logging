@@ -518,7 +518,7 @@ Public Class ErrorEntity
 			Try 
 				Call globalLogSession.createLogEntry(levelNum, Me.getLogMessage(), Me.stackTrace, Me.className)
 			Catch 
-				Print |Error | & Err() & |, | & Error$() & | on line | & Erl() & LF & getThreadInfo(12) & LF 
+				Error Err(), Error$() & | on line | & Erl() & LF & getThreadInfo(12)
 			End Try 
 		End If 
 
@@ -1085,6 +1085,7 @@ Public Class LogEntry
 				tempstr2 = FullTrim(array1(i))
 				If (len(trim(tempstr2)) > 0) Then 
 					array2 = split(tempstr2, |,|)
+					If (UBound(array2) < 2) Then Exit For	' Fix for EA3 stack trace (GetThreadInfo(12)) truncation
 					If Me.isStackInfoInstantiated_ Then Redim preserve me.stackinfo_(Ubound(me.stackinfo_) + 1) As libmethline 
 					Me.isStackInfoInstantiated_ = True 
 
