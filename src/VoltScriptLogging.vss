@@ -36,6 +36,7 @@ Public Const LOG_ERROR = 16 	' Second-highest logging level, for errors that are
 Public Const LOG_FATAL = 32 	' Highest logging level.
 '}}
 
+
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Constants
 Private Const LIBRARY_NAME = "VoltscriptLogging"
 
@@ -61,7 +62,6 @@ Public globalLogSession As LogSession 	 ' Global Logging Session
 '}}
 
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Variables
-Private stcInstances as Long  
 Private fromHere as Boolean 
 '}}
 
@@ -360,13 +360,12 @@ End Class
 Public Class ErrorEntity 
 
 	'{{SETI_AUTHOR_CODE_ErrorEntity_Private_Variables
-	Private stackinfo_() as libmethline
+	Private stacktrace_ As String 
 
-	Private message_ as String
-	Private timestamp_ as String
 	Private classname_ as String
-	Private uuid_ as String 
-	Private stcInstance_ as Long 
+	Private libraryname_ As String 
+	Private methodname_ As String 
+	Private message_ as String
 	Private stackInstantiated_ As Boolean 
 
 	Private code_ as Integer
@@ -403,20 +402,6 @@ Public Class ErrorEntity
 
 
 	%REM
-		Property entryID 
-		A unique identifier for the object
-	
-		@return	String
-	%END REM
-	Public Property Get entryID As String 
-		'{{SETI_AUTHOR_CODE_Get.entryID_implementation
-		Return Me.libraryName & |.| & Me.uuid_
-		'}}
-
-	End Property
-
-
-	%REM
 		Property stackTrace 
 		Stack Trace of the object creation, delimited by LF, in the format of "libraryName, methodName, linenum" for each line in the stack trace.
 	
@@ -424,30 +409,7 @@ Public Class ErrorEntity
 	%END REM
 	Public Property Get stackTrace As String 
 		'{{SETI_AUTHOR_CODE_Get.stackTrace_implementation
-		Dim i as Integer 
-		Dim trace() as String 
-
-		Redim trace(Ubound(Me.stackinfo_)) As String	
-
-		For i = 0 To Ubound(Me.stackinfo_) 
-			trace(i) = Me.stackinfo_(i).libraryName & |,| & Me.stackinfo_(i).methodName & |,| & cstr(Me.stackinfo_(i).linenum)
-		Next 
-
-		Return Join(trace, LF) 
-		'}}
-
-	End Property
-
-
-	%REM
-		Property uuID 
-		Unique identifier for the instance
-	
-		@return	String
-	%END REM
-	Public Property Get uuID As String 
-		'{{SETI_AUTHOR_CODE_Get.uuID_implementation
-			return Me.uuid_ 
+		Return Me.stacktrace_ 
 		'}}
 
 	End Property
@@ -489,7 +451,7 @@ Public Class ErrorEntity
 	%END REM
 	Public Property Get libraryName As String 
 		'{{SETI_AUTHOR_CODE_Get.libraryName_implementation
-		Return Me.stackinfo_(0).libraryName
+		Return Me.libraryname_
 		'}}
 
 	End Property
@@ -503,38 +465,11 @@ Public Class ErrorEntity
 	%END REM
 	Public Property Get methodName As String 
 		'{{SETI_AUTHOR_CODE_Get.methodName_implementation
-		Return Me.stackinfo_(0).methodName
+		Return Me.methodname_ 
 		'}}
 
 	End Property
 
-
-	%REM
-		Property timeStamp 
-		Timestamp of when the object instance was created. This is date/time in yyyy-MM-dd hh:mm:ss format in the current platform's timezone.
-	
-		@return	String
-	%END REM
-	Public Property Get timeStamp As String 
-		'{{SETI_AUTHOR_CODE_Get.timeStamp_implementation
-		Return Me.timestamp_
-		'}}
-
-	End Property
-
-
-	%REM
-		Property instanceNumber 
-		Instance Number (relative to all other StackTraceCarrier objects in the current session) 
-	
-		@return	Long
-	%END REM
-	Public Property Get instanceNumber As Long 
-		'{{SETI_AUTHOR_CODE_Get.instanceNumber_implementation
-		Return Me.stcInstance_ 
-		'}}
-
-	End Property
 
 	'{{SETI_AUTHOR_CODE_ErrorEntity_Private_Properties
     Private Property Get CLASS_NAME As String 
@@ -548,78 +483,47 @@ Public Class ErrorEntity
 		Constructor
 	
 		@param	className 	Class where the object creation was triggered.  Blank if not within a class. 
+		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used. 
+		@param  code 		Numeric code of the error. 	If less than 1 the value of Err() will be used.  
+		@param  lineNum 	Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used.  
+		@param	levelNum 	the Logging Level for conditionally creating a LogEntry 
 
 	%END REM
-	Public Sub New(className As String)
+	Public Sub New(className As String, message As String, code As Integer, lineNum As Integer, levelNum As Integer)
 		'{{SETI_AUTHOR_CODE_New_implementation
-		Dim stackarray as Variant 
-		Dim linearray as Variant 
+		Dim splitStack as Variant
+		Dim splitLine as Variant
+		Dim callee as String
+		Me.classname_ = className 
 
-		Dim lml as libmethline
+		If (|| = Trim(message)) Then Me.message_ = Error$() Else Me.message_ = Message 
+		If (code < 1) Then Me.code_ = Err() Else Me.code_ = code 
+		If (lineNum < 1) Then Me.lineNum_ = Erl() Else Me.lineNum_ = lineNum 
 
-		Dim i as Integer 
-		Dim inConstructor as Boolean 
+		splitStack = Split(GetThreadInfo(12), Chr(10))
+
+		splitStack(0) = ""	' Remove first entry
+
+		' conditionally remove second and third entries.
+		If (1 =< Ubound(splitStack)) && ((inStr(splitStack(1), "CREATEERRORENTITY") > 0) || (inStr(splitStack(1), "CREATECUSTOMERRORENTITY") > 0)) Then splitStack(1) = ""
+		
+		splitStack = FullTrim(splitStack)
+		callee = splitStack(0)	' Library, Method, Line
+		splitLine = FullTrim(Split(callee, ","))
+		Me.libraryname_ = splitLine(0)
+		Me.methodName_ = splitLine(1)
+		Me.stackTrace_ = Join(splitStack, Chr(10)) 
+
+		If (levelNum != NO_LOGGING) Then 
+			Try 
+				Call globalLogSession.createLogEntry(levelNum, Me.getLogMessage(), Me.stackTrace, Me.className)
+			Catch 
+				Print |Error | & Err() & |, | & Error$() & | on line | & Erl() & LF & getThreadInfo(12) & LF 
+			End Try 
+		End If 
 
 
-		' BEGIN CODE 
-		Redim Me.stackinfo_(0) As libmethline
-		Me.stcInstance_ = stcInstances++
-		Me.classname_ = FullTrim(classname)
-		Me.message_ = Error$() 
-		Me.timestamp_ = Format(Now(), "yyyy-MM-dd hh:mm:ss")
-		Me.uuid_ = CreateUuid()
-
-
-		' getThreadInfo(12) includes a trailing LF
-		' LF is delimiter on Windows, is standard delimiter on Linux
-		stackarray = split(FullTrim(getThreadInfo(12)), LF)
-
-		' add content from the stack trace to the internal stack, 
-		' but skip the current constructor, direct parent constructors, and ErrorSession / LogSession creators. 
-		inConstructor = True 
-		For i = 1 to Ubound(stackarray) ' start at ordinal position 1 to skip this constructor 
-
-			linearray = Split(stackarray(i), |,|) 
-			Select Case Ubound(linearray) 
-				Case 0 
-					' This can happen when a an error occurs in an Execute statement. 
-					lml.linenum = cint(linearray(0))
-
-				Case 1 
-					' This can happen when a an error occurs in an Execute statement. 
-					lml.methodName = linearray(0) 
-					lml.linenum = cint(linearray(1))
-
-				Case Else 
-					lml.libraryName = linearray(0) 
-					lml.methodName = linearray(1)
-					lml.linenum = cint(linearray(2))
-
-					If inConstructor Then inConstructor = (0 = strComp(lml.methodName, |New|, 5)) 
-
-					If inConstructor Then
-						' skip the constructor direct parent constructors. 
-					Else
-						Select Case i 
-							Case 1, 2
-								If ((0 = strComp(lml.libraryName, |VoltScriptLogging|, 5)) _  
-								&& (0 = strComp(lml.methodName, |addError|, 5)) _ 
-								|| (0 = strComp(lml.methodName, |createLogEntry|, 5))) Then 
-									' skip the ErrorSession / LogSession creators.
-								Else 
-									Call Me.pushlml(lml)
-								End If
-
-							Case Else 
-								Call Me.pushlml(lml)
-
-						End Select
-					End If 
-			End Select 
-		Next  
-
-		Me.lineNum_ = Erl()
-		Me.code_ = Err()
+		
 		'}}
 
 	End Sub
@@ -637,9 +541,6 @@ Public Class ErrorEntity
 		Dim stackinfo as Variant 
 		Dim i as Integer 
 
-		Print Me.CLASS_NAME & |.instanceNumber: | & Me.instanceNumber 
-		Print Me.CLASS_NAME & |.entryID: | & Me.entryID 
-		Print Me.CLASS_NAME & |.timestamp : | & Me.timestamp 
 		Print Me.CLASS_NAME & |.libraryName : | & Me.libraryName 
 		Print Me.CLASS_NAME & |.className : | & Me.className
 		Print Me.CLASS_NAME & |.methodName : | & Me.methodName 
@@ -669,26 +570,6 @@ Public Class ErrorEntity
 		'}}
 
 	End Function
-
-	'{{SETI_AUTHOR_CODE_ErrorEntity_Private_Methods
-
-	%REM
-		Sub pushlml 
-		Pushes a libmethline onto the internal stack. 
-
-	%END REM
-	Sub pushlml(lml as libmethline)
-		If Me.stackInstantiated_ Then 
-			Redim Preserve Me.stackinfo_(Ubound(Me.stackinfo_) + 1) As libmethline 
-		Else 
-			Me.stackInstantiated_ = True 
-			Redim Me.stackinfo_(0) As libmethline 
-		End If 
-
-		Me.stackinfo_(Ubound(Me.stackinfo_)) = lml 
-	End Sub 
-
-	'}} 
 
 End Class 
 
@@ -738,6 +619,10 @@ Public Class ErrorSession
 	End Property
 
 	'{{SETI_AUTHOR_CODE_ErrorSession_Private_Properties
+    Private Property Get CLASS_NAME As String 
+        Return "ErrorSession"
+    End Property 
+
 	%REM
 		Property isEmpty 
 		Flag indicating if the object contains no LogEntries (entryCount = 0) 
@@ -782,17 +667,46 @@ Do not directly use this constructor, use getErrorSession() instead.
 
 
 	%REM
-		Function addError 
+		Function createErrorEntity 
 		Spawns a new ErrorEntity object and adds it to the ErrorSession
 	
 		@param	className 	Class where the object creation was triggered. Blank if not within a class.  (Passed to the ErrorEntity constructor)
 
 		@return	ErrorEntity
 	%END REM
-	Public Function addError(className As String) As ErrorEntity 
-		'{{SETI_AUTHOR_CODE_addError_implementation
+	Public Function createErrorEntity(className As String, levelNum As Integer) As ErrorEntity 
+		'{{SETI_AUTHOR_CODE_addError_implementation 
+		Dim ee as New ErrorEntity(className, ||, 0, 0, levelNum)
+		Return me.push(ee) 
 
-		Dim temp as New ErrorEntity(className)
+		'}}
+
+	End Function
+
+
+	%REM
+		Function createCustomErrorEntity 
+		Spawns a new ErrorEntity object and adds it to the ErrorSession
+	
+		@param	className 	Class where the object creation was triggered. Blank if not within a class.  (Passed to the ErrorEntity constructor)
+		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used. 
+		@param  code 		Numeric code of the error. 	If less than 1 the value of Err() will be used.  
+		@param  lineNum 	Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used.  
+		@param	levelNum 	the Logging Level for conditionally creating a LogEntry 
+
+		@return	ErrorEntity
+	%END REM
+	Public Function createCustomErrorEntity(className As String, message As String, code As Integer, lineNum As Integer, levelNum As Integer) As ErrorEntity 
+		'{{SETI_AUTHOR_CODE_addError_implementation
+		Dim ee as New ErrorEntity(className, message, code, lineNum, levelNum)
+		Return me.push(ee) 
+
+		'}}
+
+	End Function
+
+	'{{SETI_AUTHOR_CODE_ErrorSession_Private_Methods
+	Private Function push(source As ErrorEntity) As ErrorEntity
 
 		If (IsEmpty(Me.content_)) Then
 			Redim Me.content_(0) As ErrorEntity
@@ -800,15 +714,13 @@ Do not directly use this constructor, use getErrorSession() instead.
 			Redim Preserve Me.content_(Ubound(Me.content_) + 1) As ErrorEntity
 		End If
 
-		Set Me.content_(Ubound(Me.content_)) = temp
+		Set Me.content_(Ubound(Me.content_)) = source
 
-		Return temp
-		'}}
+		Return source 
 
-	End Function
-
-	'{{SETI_AUTHOR_CODE_ErrorSession_Private_Methods
+	End Function  
 	'}} 
+
 
 End Class 
 
@@ -822,15 +734,15 @@ Public Class LogEntry
 
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Variables
 	Private stackinfo_() as libmethline
-
+	Private stackTrace_ as Variant
 	Private message_ as String
 	Private timestamp_ as String
+	Private extinfo_ as String
 	Private classname_ as String
 	Private uuid_ as String 
-	Private stcInstance_ as Long 
-	Private stackInstantiated_ As Boolean 
-	Private extinfo_ as String
+	Private libraryName_ as String
 	Private level_ as Integer
+	Private isStackInfoInstantiated_ as Boolean
 	'}}
 
 
@@ -915,16 +827,7 @@ Public Class LogEntry
 	%END REM
 	Public Property Get stackTrace As String 
 		'{{SETI_AUTHOR_CODE_Get.stackTrace_implementation
-		Dim i as Integer 
-		Dim trace() as String 
-
-		Redim trace(Ubound(Me.stackinfo_)) As String	
-
-		For i = 0 To Ubound(Me.stackinfo_) 
-			trace(i) = Me.stackinfo_(i).libraryName & |,| & Me.stackinfo_(i).methodName & |,| & cstr(Me.stackinfo_(i).linenum)
-		Next 
-
-		Return Join(trace, LF) 
+		Return me.stackTrace_
 		'}}
 
 	End Property
@@ -980,7 +883,10 @@ Public Class LogEntry
 	%END REM
 	Public Property Get lineNum As Integer 
 		'{{SETI_AUTHOR_CODE_Get.lineNum_implementation
-		Return Me.stackinfo_(0).linenum
+		If (Not me.isStackInfoInstantiated_) Then
+			Call lazyLoadStack()
+		End If
+		Return me.stackinfo_(Ubound(me.stackinfo_)).linenum
 		'}}
 
 	End Property
@@ -994,7 +900,7 @@ Public Class LogEntry
 	%END REM
 	Public Property Get libraryName As String 
 		'{{SETI_AUTHOR_CODE_Get.libraryName_implementation
-		Return Me.stackinfo_(0).libraryName
+		Return Me.libraryName_
 		'}}
 
 	End Property
@@ -1008,7 +914,10 @@ Public Class LogEntry
 	%END REM
 	Public Property Get methodName As String 
 		'{{SETI_AUTHOR_CODE_Get.methodName_implementation
-		Return Me.stackinfo_(0).methodName
+		If (Not me.isStackInfoInstantiated_) Then
+			Call lazyLoadStack()
+		End If
+		Return me.stackinfo_(Ubound(me.stackinfo_)).methodName
 		'}}
 
 	End Property
@@ -1027,19 +936,6 @@ Public Class LogEntry
 
 	End Property
 
-
-	%REM
-		Property instanceNumber 
-		Instance Number (relative to all other StackTraceCarrier objects in the current session) 
-	
-		@return	Long
-	%END REM
-	Public Property Get instanceNumber As Long 
-		'{{SETI_AUTHOR_CODE_Get.instanceNumber_implementation
-		Return Me.stcInstance_ 
-		'}}
-
-	End Property
 
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Properties
     Private Property Get CLASS_NAME As String 
@@ -1065,77 +961,25 @@ Public Class LogEntry
 	%END REM
 	Public Sub New(levelNum As Integer, message As String, extInfo As String, className As String) 
 		'{{SETI_AUTHOR_CODE_New_implementation
-		Dim stackarray as Variant 
-		Dim linearray as Variant 
 
-		Dim lml as libmethline
+		' set the level, message, and any extended info
+		If (isValidLevel(levelNum, False) = False) Then
+			Error 1000, |Invalid logging level: | & cstr(levelNum) & |. Use one of the LOG_... constants|
+		End If
+		me.level_ = levelNum
+		me.message_ = message 
+		me.extInfo_ = extInfo
 
-		Dim i as Integer 
-		Dim inConstructor as Boolean 
+		me.classname_ = FullTrim(classname)
 
+		' start with the timestamp
+		me.timestamp_ = Format(Now(), "yyyy-MM-dd hh:mm:ss")
 
-		' BEGIN CODE 
-		Redim Me.stackinfo_(0) As libmethline
-		Me.stcInstance_ = stcInstances++
-		Me.classname_ = FullTrim(classname)
-		Me.message_ = message 
-		Me.timestamp_ = Format(Now(), "yyyy-MM-dd hh:mm:ss")
-		Me.uuid_ = CreateUuid()
+		me.uuid_ = CreateUuid()
 
+		me.stackTrace_ = getThreadInfo(12)
+		Me.libraryName_ = getLibraryFromStack()
 
-		' getThreadInfo(12) includes a trailing LF
-		' LF is delimiter on Windows, is standard delimiter on Linux
-		stackarray = split(FullTrim(getThreadInfo(12)), LF)
-
-		' add content from the stack trace to the internal stack, 
-		' but skip the current constructor, direct parent constructors, and ErrorSession / LogSession creators. 
-		inConstructor = True 
-		For i = 1 to Ubound(stackarray) ' start at ordinal position 1 to skip this constructor 
-
-			linearray = Split(stackarray(i), |,|) 
-			Select Case Ubound(linearray) 
-				Case 0 
-					' This can happen when a an error occurs in an Execute statement. 
-					lml.linenum = cint(linearray(0))
-
-				Case 1 
-					' This can happen when a an error occurs in an Execute statement. 
-					lml.methodName = linearray(0) 
-					lml.linenum = cint(linearray(1))
-
-				Case Else 
-					lml.libraryName = linearray(0) 
-					lml.methodName = linearray(1)
-					lml.linenum = cint(linearray(2))
-
-					If inConstructor Then inConstructor = (0 = strComp(lml.methodName, |New|, 5)) 
-
-					If inConstructor Then
-						' skip the constructor direct parent constructors. 
-					Else
-						Select Case i 
-							Case 1, 2
-								If ((0 = strComp(lml.libraryName, |VoltScriptLogging|, 5)) _  
-								&& (0 = strComp(lml.methodName, |addError|, 5)) _ 
-								|| (0 = strComp(lml.methodName, |createLogEntry|, 5))) Then 
-									' skip the ErrorSession / LogSession creators.
-								Else 
-									Call Me.pushlml(lml)
-								End If
-
-							Case Else 
-								Call Me.pushlml(lml)
-
-						End Select
-					End If 
-			End Select 
-		Next  
-
-		' Fail in invalid level 
-		If Not isValidLevel(levelNum, False) Then Error ERR_PARAMETER_INVALID, MSG_PARAMETER_INVALID & "Invalid logging level: " & CStr(levelNum) & ". Use one of the LOG_... constants"
-
-		Me.level_ = levelNum
-		Me.extInfo_ = extInfo
 		'}}
 
 	End Sub
@@ -1155,7 +999,6 @@ Public Class LogEntry
 		Dim stackinfo as Variant 
 		Dim i as Integer 
 
-		Print Me.CLASS_NAME & |.instanceNumber: | & Me.instanceNumber 
 		Print Me.CLASS_NAME & |.entryID: | & Me.entryID 
 		Print Me.CLASS_NAME & |.timestamp : | & Me.timestamp 
 		Print Me.CLASS_NAME & |.libraryName : | & Me.libraryName 
@@ -1211,8 +1054,6 @@ Public Class LogEntry
 			Return Me.timestamp
 		Case "EXTINFO"
 			Return Me.extInfo
-		Case "INSTANCENUMBER"
-			Return Me.instanceNumber
 		Case Else
 			Error ERR_PARAMETER_INVALID, MSG_PARAMETER_INVALID & |propertyName: | & propertyName
 	End Select
@@ -1223,20 +1064,56 @@ Public Class LogEntry
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Methods
 
 	%REM
-		Sub pushlml 
-		Pushes a libmethline onto the internal stack. 
+		Sub lazyLoadStack 
+		Loads the internal stack by parsing the stacktrace
 
 	%END REM
-	Sub pushlml(lml as libmethline)
-		If Me.stackInstantiated_ Then 
-			Redim Preserve Me.stackinfo_(Ubound(Me.stackinfo_) + 1) As libmethline 
-		Else 
-			Me.stackInstantiated_ = True 
-			Redim Me.stackinfo_(0) As libmethline 
-		End If 
+	Sub lazyLoadStack()
+		Dim array1 as Variant 
+		Dim array2 as Variant 
 
-		Me.stackinfo_(Ubound(Me.stackinfo_)) = lml 
-	End Sub 
+		Dim tempstr2 as String 
+
+		Dim i as Integer
+		Redim me.stackinfo_(0) As libmethline
+
+		' LF is delimiter on Windows, is standard delimiter on Linux
+		array1 = split(Me.stackTrace, Chr(10))
+
+		For i = Lbound(array1) to Ubound(array1) 
+			If (i > Lbound(array1)) Then 
+				tempstr2 = FullTrim(array1(i))
+				If (len(trim(tempstr2)) > 0) Then 
+					array2 = split(tempstr2, |,|)
+					If Me.isStackInfoInstantiated_ Then Redim preserve me.stackinfo_(Ubound(me.stackinfo_) + 1) As libmethline 
+					Me.isStackInfoInstantiated_ = True 
+
+					me.stackinfo_(Ubound(me.stackinfo_)).libraryName = array2(0)
+					me.stackinfo_(Ubound(me.stackinfo_)).methodName = array2(1)
+					me.stackinfo_(Ubound(me.stackinfo_)).linenum = cint(array2(2))
+				End If
+			End If 
+		Next
+	End Sub
+
+	%REM
+		Sub getLibraryFromStack 
+		Parses the stacktrace in order to find the calling library 
+
+	%END REM
+	Function getLibraryFromStack() as String
+		Dim array1 as Variant
+		Dim array2 as Variant
+
+		Try
+			' LF is delimiter on Windows, is standard delimiter on Linux
+			array1 = FullTrim(Split(Me.StackTrace, Chr(10)))
+			array1 = split(array1(UBound(array1)), |,|)
+			Return array1(0)
+		Catch
+			Return GetThreadInfo(0) & "(FAILED GETLIBRARYFROMSTACK)"
+		End Try
+	End Function
 
 	'}} 
 
@@ -1329,7 +1206,11 @@ Public Class LogSession
 
 	End Property
 
+
 	'{{SETI_AUTHOR_CODE_LogSession_Private_Properties
+	Private Property Get CLASS_NAME As String 
+        Return "LogSession"
+    End Property 
 	%REM
 		Property isEmpty 
 		Flag indicating if the object contains no LogEntries (entryCount = 0) 
@@ -1377,9 +1258,9 @@ Public Class LogSession
 
 	%REM
 		Sub addLogWriter 
-		Adds a log writer to the object. 
+		Adds a log writer to the LogSession. 
 	
-		@param	logWriter 	Instance of BaseLogWriter or derived class
+		@param	logWriter 	Instance of BaseLogWriter (or derived class) to be added to the LogSession
 
 	%END REM
 	Public Sub addLogWriter(logWriter As BaseLogWriter) 
@@ -1388,6 +1269,23 @@ Public Class LogSession
 		'}}
 
 	End Sub
+
+
+	%REM
+		Sub removeLogWriter 
+		Removes a log writer from the LogSession. 
+	
+		@param	logWriter 	Instance of BaseLogWriter (or derived class) to be removed from the LogSession
+
+	%END REM
+	Public Sub removeLogWriter(logWriter As BaseLogWriter)
+		'{{SETI_AUTHOR_CODE_addLogWriter_implementation
+		If logWriter is Nothing Then Return 
+		If isElement(Me.logWriters(logWriter.label)) Then Erase Me.logWriters(logWriter.label)
+
+		'}}
+
+	End Sub 
 
 
 	%REM
@@ -1499,6 +1397,8 @@ Public Class LogSession
 	'}} 
 
 End Class 
+
+
 '{{SETI_AUTHOR_CODE_VoltscriptLogging_Private_Classes
 '}}
 
@@ -1531,7 +1431,7 @@ End Function
 %END REM
 Static Public Function getLogEntryPropertyNames() As Variant 
 	'{{SETI_AUTHOR_CODE_getLogEntryPropertyNames_implementation
-	Static props(11) as String
+	Static props(10) as String
 
 	If (props(0) = "") Then
 		props(0) = "STACKTRACE"
@@ -1545,7 +1445,6 @@ Static Public Function getLogEntryPropertyNames() As Variant
 		props(8) = "METHODNAME"
 		props(9) = "TIMESTAMP"
 		props(10) = "EXTINFO"
-		props(11) = "INSTANCENUMBER"
 	End If
 
 	Return props

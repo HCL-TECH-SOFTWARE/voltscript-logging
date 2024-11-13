@@ -17,14 +17,18 @@ The following snippet shows an example of creating log entries:
 ``` vbscript
 Function doProcessing(passedVal as Integer) as Boolean
 
+    Print |doProcessing(| & passedVal & |)|
     Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered doProcessing", "", "")
     Try
-        If (passedVal > 4) Then
-            Error 4000, "Invalid entry"
-        End If
+        If (passedVal > 4) Then Error 4000, "Invalid entry"
+
         Call globalLogSession.createLogEntry(LOG_DEBUG, "Ran doProcessing successfully", "", "")
     Catch
-        Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Value passed: " & passedVal, "")
+        If (passedVal > 6) Then 
+            Call globalLogSession.createLogEntry(LOG_FATAL, "Error encountered", "Value passed: " & passedVal, "")
+        Else 
+            Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Value passed: " & passedVal, "")
+        End If 
     Finally
         Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished doProcessing", "", "")
     End Try
@@ -57,15 +61,15 @@ The following log levels can be passed, from most severe to least:
 You can check for log entries at or above a specific level at any point. A use case for this might be to abort processing because there are problems that require fixing, as below:
 
 ``` vbscript linenums="1"
-    Dim i as Integer
+Dim i as Integer
 
-    Do
-        Call doProcessing(i++)
-        If (Not IsEmpty(globalLogSession.getLogEntriesByLevel(LOG_FATAL, LOG_FATAL)) Then
-            Print "Exiting at " & --i ' (1)!
-            Exit Sub
-        End If
-    Loop
+Do
+    Call doProcessing(i++)
+    If (Not IsEmpty(globalLogSession.getLogEntriesByLevel(LOG_FATAL, LOG_FATAL))) Then
+        Print "Exiting at " & --i 
+        Exit Sub
+    End If
+Loop
 ```
 
 1. Line 4 has already incremented i from the value that caused the problem. So we decrement it before including in the Print statement.

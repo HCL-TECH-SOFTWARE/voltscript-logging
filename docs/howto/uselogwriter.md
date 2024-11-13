@@ -26,9 +26,10 @@ A typical use case is wishing to define LogWriters in a configuration file. Howe
 
 The maximum level can only be set in the constructor. If you have to change it afterwards, you will need to create a new LogWriter. But be aware whether the LogWriter has already been added to the LogSession. If so, the correct method of processing would be:
 
-- Remove the LogWriter from the LogSession (`getLogSession().logEntries.removeByKey(logWriter.label)`).
-- Delete the LogWriter.
-- Re-initialize the LogWriter.
+1. Remove the LogWriter from the LogSession (`globalLogSession.removeLogWriter(myLogWriter)`).
+1. Delete the LogWriter. (`Set myLogWriter = Nothing`).
+1. Re-instantiate the LogWriter. (`Set myLogWriter = New BaseLogWriter("stringFormat", LOG_DEBUG, LOG_FATAL, "{{LEVELNAME}}: {{MESSAGE}}")`).
+1. Add the LogWriter back to the LogSession (`Call globalLogSession.addLogWriter(myLogWriter)`).
 
 ## Formatters
 

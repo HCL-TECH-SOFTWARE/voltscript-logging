@@ -6,7 +6,7 @@ Use "../libs/VoltScriptTesting"
 
 Private localColl() as String
 Private TEST_DELETE as Boolean
-Const errLine = 87      ' Update if error tests move
+Const errLine = 90      ' Update if error tests move
 
 Class TestLogWriter as BaseLogWriter
     Public outputColl as Variant
@@ -81,12 +81,15 @@ Function testErrors(testRunner as TestRunner) as Boolean
 
     Dim testSuite as New TestSuite("Error Tests")
     Call testRunner.addTestSuite(testSuite)
+
     Dim errObj as ErrorEntity 
+    Dim errors as Variant 
+    Dim tempint as Integer 
 
     Try
         Error 1000, "Test Error"
     Catch
-        Set errObj = getErrorSession().addError(|testclass|)
+        Set errObj = getErrorSession().createErrorEntity(|testclass|, LOG_ERROR)
     End Try
 
     Call testSuite.describe("Test error count is 1").assertEqualsInteger(1, getErrorSession().errorCount)
@@ -103,8 +106,47 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Try
         Error 1000, "Test Error"
     Catch
-        Set errObj = getErrorSession().addError(||)
+        Set errObj = getErrorSession().createErrorEntity(||, LOG_ERROR)
     End Try
+
+
+    Call testSuite.describe("Test error with NO_LOGGING")
+    tempint = globalLogSession.entryCount 
+    Try 
+        Error 1000, "Test error with NO_LOGGING"
+    Catch 
+        Call getErrorSession().createErrorEntity(||, NO_LOGGING)
+        Call testSuite.addResult(True, "")
+    End Try 
+    Call testSuite.describe("globalLogSession.entryCount is " & tempint).assertEqualsInteger(tempint, globalLogSession.entryCount)
+
+    Call testSuite.describe("Test error with LOG_ERROR")
+    tempint = globalLogSession.entryCount + 1
+    Try 
+        Error 1000, "Test error with LOG_ERROR"
+    Catch 
+        Call getErrorSession().createErrorEntity(||, LOG_ERROR)
+        Call testSuite.addResult(True, "")
+    End Try 
+    Call testSuite.describe("globalLogSession.entryCount is " & tempint).assertEqualsInteger(tempint, globalLogSession.entryCount)
+
+
+    Call testSuite.describe("Test Create Custom Error Entity")
+    tempint = globalLogSession.entryCount + 1
+    Try 
+        Error 1000, "Test Create Custom Error Entity"
+    Catch 
+        Call getErrorSession().createCustomErrorEntity("", "this is a custom error message", 1352, 2525, LOG_DEBUG)
+        Call testSuite.addResult(True, "")
+    End Try
+    errors = getErrorSession().errors 
+    Set errobj = errors(Ubound(errors))
+    Call testSuite.describe("Last error message is 'this is a custom error message'").assertEqualsString("this is a custom error message", errobj.message, True)
+    Call testSuite.describe("Last error code is 1352").assertEqualsInteger(1352, errobj.code)
+    Call testSuite.describe("Last error line is 2525").assertEqualsInteger(2525, errobj.lineNum)
+    Call testSuite.describe("globalLogSession.entryCount is " & tempint).assertEqualsInteger(tempint, globalLogSession.entryCount)
+
+
     Call testSuite.describe("Test reset error session")
     Try
         Call getErrorSession().reset()
@@ -113,6 +155,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
         Call testSuite.addResult(False, "Error resetting error session")
     End Try
     Call testSuite.describe("Test error count is 0 after reset").assertEqualsInteger(0, getErrorSession().errorCount)
+    
     Return testSuite.ranSuccessfully()
 
 End Function
@@ -304,7 +347,7 @@ Function logFunctionTests(testRunner as TestRunner) as Boolean
     Dim logFunctionSuite as New TestSuite("Log Function Tests")
     Call testRunner.addTestSuite(logFunctionSuite)
 
-    Call logFunctionSuite.describe("Test LogEntry Property Names elements").assertEqualsLong(11, UBound(getLogEntryPropertyNames()))
+    Call logFunctionSuite.describe("Test LogEntry Property Names elements").assertEqualsLong(10, UBound(getLogEntryPropertyNames()))
     
     Dim i as Integer
     Dim prop as String

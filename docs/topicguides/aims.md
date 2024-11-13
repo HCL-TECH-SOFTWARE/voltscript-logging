@@ -29,6 +29,6 @@ At this time no changes are being made to error handling in the core language. T
 - **Erl()** gives the line the Error was triggered on.
 - **getThreadInfo(12)** is an addition to VoltScript and gives a safe-to-use stack trace.
 
-The aims of the framework are to make it as easy as possible to track errors. Thus `getErrorSession().addError()` creates an ErrorEntity object and adds it to the session. See the [Error tracking how-to](../howto/errortracking.md) for more details.
+The aims of the framework are to make it as easy as possible to track errors. Thus `getErrorSession().createErrorEntity()` creates an ErrorEntity object and adds it to the session. See the [Error tracking how-to](../howto/errortracking.md) for more details.
 
-Again, error logging is separated from error tracking. Some errors may be handled differently from others - some may required immediate end of processing, others may be handled within the code. So ErrorEntitys are not automatically added to the LogSession, you add them if required and with the relevant log level.
+Again, error logging is separated from error tracking. Some errors may be handled differently from others - some may required immediate end of processing, others may be handled within the code. So ErrorEntity instances are not automatically added to the LogSession, you add them if required and with the relevant log level.
