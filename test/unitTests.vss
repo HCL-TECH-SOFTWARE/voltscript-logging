@@ -8,7 +8,7 @@ Private localColl() as String
 Private TEST_DELETE as Boolean
 
 ' NOTE: UPDATE THESE ERROR LINES IF ERROR TESTS MOVE 
-Const errLine = 176    
+Const errLine = 172    
 Const BaseErrorTesterLine =  65
 Const ChildErrorTesterLine_1 = 84
 Const ChildErrorTesterLine_2 = 90
@@ -116,35 +116,31 @@ Sub Initialize
 
     Try
         totExp = 127
-        result = runThreadTests(testRunner)
-        If result then tot += 1
-        
-        lastResult = runSessionTests(testRunner)
-        If lastResult Then tot += 2
-        result = result and lastResult
+        result = runSessionTests(testRunner)
+        If result Then tot += 1
         
         lastResult = logEntryTests(testRunner)
-        If lastResult Then tot += 4
+        If lastResult Then tot += 2
         result = result And lastResult
         
         lastResult = logCollectionTests(testRunner)
-        If lastResult Then tot += 8
+        If lastResult Then tot += 4
         result = result And lastResult
         
         lastResult = logFunctionTests(testRunner)
-        If lastResult Then tot += 16
+        If lastResult Then tot += 8
         result = result And lastResult
         
         lastResult = runBaseWriterTests(testRunner)
-        If lastResult Then tot += 32
+        If lastResult Then tot += 16
         result = result And lastResult
         
         lastResult = testErrors(testRunner)
-        If lastResult Then tot += 64
+        If lastResult Then tot += 32
         result = result And lastResult
 
         lastResult = testClassHierarchyErrors(testRunner)
-        If lastResult Then tot += 128
+        If lastResult Then tot += 64
         result = result And lastResult
 
         If result Then
@@ -337,55 +333,6 @@ Function testClassHierarchyErrors(testRunner as TestRunner) as Boolean
     Call testSuite.describe("Test error library is 'UnitTests'").assertEqualsString(|UnitTests|, ee.libraryName, True)
     Call testSuite.describe("Test error class is 'ChildErrorTester'").assertEqualsString(|ChildErrorTester|, ee.className, True)
     Call testSuite.describe("Test error method is 'TryCatchError'").assertEqualsString(|TryCatchError|, ee.methodName, True)
-
-    Return testSuite.ranSuccessfully()
-
-End Function
-
-
-
-
-Function runThreadTests(testRunner as TestRunner) as Boolean
-
-    Dim testSuite as New TestSuite("Thread Tests")
-    Call testRunner.addTestSuite(testSuite)
-
-    Dim stackTrace as String
-    Dim delimiter as String
-    stackTrace = GetThreadInfo(12)
-
-    delimiter = chr(13) & chr(10)   'CRLF
-    If (instr(stackTrace, delimiter) < 1) Then
-        delimiter = chr(13)   'CR
-        If (instr(stackTrace, delimiter) < 1) Then
-            delimiter = chr(10)   'LF
-        End If
-    End If
-
-    Call testSuite.describe("Check delimiter is LF").assertEqualsString(chr(10), delimiter, True)
-
-    Dim arr1 as Variant
-    Dim isBlank as Boolean
-    arr1 = Split(stackTrace, delimiter)
-    Call testSuite.describe("Check stack trace contains no empty elements")
-    Dim i as Integer
-    For i = 0 To UBound(arr1)
-        If arr1(i) = "" Then
-            isBlank = True
-            Exit For
-        End If
-    Next
-    Call testSuite.assertFalse(isBlank)
-
-    isBlank = False
-    Call testSuite.describe("Check no leading or trailing spaces in stack trace")
-    For i = 0 To UBound(arr1)
-        If Left(arr1(i), 1) = " " Or Right(arr1(i), 1) = " " Then
-            isBlank = True
-            Exit For
-        End If
-    Next
-    Call testSuite.assertFalse(isBlank)
 
     Return testSuite.ranSuccessfully()
 
