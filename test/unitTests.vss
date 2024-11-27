@@ -6,7 +6,27 @@ Use "../libs/VoltScriptTesting"
 
 Private localColl() as String
 Private TEST_DELETE as Boolean
-Const errLine = 90      ' Update if error tests move
+
+' NOTE: UPDATE THESE ERROR LINES IF ERROR TESTS MOVE 
+Const errLine = 176    
+Const BaseErrorTesterLine =  65
+Const ChildErrorTesterLine_1 = 84
+Const ChildErrorTesterLine_2 = 90
+Const ChildErrorTesterLine_3 = 96 
+
+Const ERR_1100 = 1100 
+Const ERR_1400 = 1400 
+Const ERR_1600 = 1600 
+Const ERR_1800 = 1800 
+Const ERR_2100 = 2100 
+
+Const MSG_1100 = |This is the message for error 1100.|   
+Const MSG_1400 = |This is the message for error 1400.|   
+Const MSG_1600 = |This is the message for error 1600.|   
+Const MSG_1800 = |This is the message for error 1800.|   
+Const MSG_2100 = |This is the message for error 2100.|   
+
+
 
 Class TestLogWriter as BaseLogWriter
     Public outputColl as Variant
@@ -32,6 +52,59 @@ Class TestLogWriter as BaseLogWriter
 
 End Class
 
+
+Class BaseErrorTester 
+
+    Public Sub New() 
+
+    End Sub 
+
+    
+    Public Sub TryCatchError(errCode As Integer, errMsg As String)
+        Try 
+            Error errCode, errMsg ' BaseErrorTesterLine
+        Catch 
+            Call getErrorSession().createErrorEntity(LOG_ERROR)
+        End Try 
+    End Sub 
+
+End Class 
+
+
+Class ChildErrorTester As BaseErrorTester
+
+   Public Sub New() 
+
+    End Sub
+
+    
+    Public Sub TryCatchError(errCode As Integer, errMsg As String)
+        Try 
+            If (errCode < 1300) Then 
+                Error errCode, errMsg   ' ChildErrorTesterLine_1
+
+            Elseif (errCode < 1500) Then 
+                Call BaseErrorTester..TryCatchError(errCode, errMsg)
+
+            Elseif (errCode < 1700) Then 
+                Error errCode, errMsg   ' ChildErrorTesterLine_2
+
+            Elseif (errCode < 1900) Then 
+                Call BaseErrorTester..TryCatchError(errCode, errMsg)
+
+            Else
+                Error errCode, errMsg   ' ChildErrorTesterLine_3
+            End If 
+
+        Catch 
+            Call getErrorSession().createErrorEntity(LOG_ERROR)
+        End Try 
+
+    End Sub 
+
+End Class 
+
+
 Sub Initialize
 
     Dim tot as Integer
@@ -45,23 +118,33 @@ Sub Initialize
         totExp = 127
         result = runThreadTests(testRunner)
         If result then tot += 1
+        
         lastResult = runSessionTests(testRunner)
         If lastResult Then tot += 2
         result = result and lastResult
+        
         lastResult = logEntryTests(testRunner)
         If lastResult Then tot += 4
         result = result And lastResult
+        
         lastResult = logCollectionTests(testRunner)
         If lastResult Then tot += 8
         result = result And lastResult
+        
         lastResult = logFunctionTests(testRunner)
         If lastResult Then tot += 16
         result = result And lastResult
+        
         lastResult = runBaseWriterTests(testRunner)
         If lastResult Then tot += 32
         result = result And lastResult
+        
         lastResult = testErrors(testRunner)
         If lastResult Then tot += 64
+        result = result And lastResult
+
+        lastResult = testClassHierarchyErrors(testRunner)
+        If lastResult Then tot += 128
         result = result And lastResult
 
         If result Then
@@ -71,11 +154,12 @@ Sub Initialize
             Error 1001, "Tests Failed, tot was " & tot & ", expected " & totExp & ". Check results"
         End If
     Catch
+        ' Print |Error | & Err() & |, | & Error() & " on line " & Erl()
         Error 1001, "Error " & Error() & " on line " & Erl()
     End Try
 
-
 End Sub
+
 
 Function testErrors(testRunner as TestRunner) as Boolean
 
@@ -86,27 +170,30 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Dim errors as Variant 
     Dim tempint as Integer 
 
+    Dim i as Integer 
+
     Try
-        Error 1000, "Test Error"
+        Error 1000, "Test Error"  ' errLine
     Catch
-        Set errObj = getErrorSession().createErrorEntity(|testclass|, LOG_ERROR)
+        Set errObj = getErrorSession().createErrorEntity(LOG_ERROR)
     End Try
 
+    errors = getErrorSession().errors() 
     Call testSuite.describe("Test error count is 1").assertEqualsInteger(1, getErrorSession().errorCount)
-    Call testSuite.describe("Test error message is correct").assertEqualsString("Test Error", getErrorSession().errors(0).message, True)
-    Call testSuite.describe("Test error line is correct").assertEqualsInteger(errLine, getErrorSession().errors(0).lineNum)
-    Call testSuite.describe("Test error code is correct").assertEqualsInteger(1000, getErrorSession().errors(0).code)
+    Call testSuite.describe("Test error message is correct").assertEqualsString("Test Error", errors(0).message, True)
+    Call testSuite.describe("Test error line is correct").assertEqualsInteger(errLine, errors(0).lineNum)
+    Call testSuite.describe("Test error code is correct").assertEqualsInteger(1000, errors(0).code)
 
     Dim expected as String
     expected = "Error 1000, Test Error at line " & errLine
-    Call testSuite.describe("Test error message for logs").assertEqualsString(expected, getErrorSession().errors(0).getLogMessage(), True)
-    Call testSuite.describe("Test script name").assertEqualsString("UNITTESTS", getErrorSession().errors(0).libraryName, True)
-    Call testSuite.describe("Test method name").assertEqualsString("testErrors", getErrorSession().errors(0).methodName, True)
+    Call testSuite.describe("Test error message for logs").assertEqualsString(expected, errors(0).getLogMessage(), True)
+    Call testSuite.describe("Test script name").assertEqualsString("UNITTESTS", errors(0).libraryName, True)
+    Call testSuite.describe("Test method name").assertEqualsString("testErrors", errors(0).methodName, True)    
 
     Try
         Error 1000, "Test Error"
     Catch
-        Set errObj = getErrorSession().createErrorEntity(||, LOG_ERROR)
+        Set errObj = getErrorSession().createErrorEntity(LOG_ERROR)
     End Try
 
 
@@ -115,7 +202,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Try 
         Error 1000, "Test error with NO_LOGGING"
     Catch 
-        Call getErrorSession().createErrorEntity(||, NO_LOGGING)
+        Call getErrorSession().createErrorEntity(NO_LOGGING)
         Call testSuite.addResult(True, "")
     End Try 
     Call testSuite.describe("globalLogSession.entryCount is " & tempint).assertEqualsInteger(tempint, globalLogSession.entryCount)
@@ -125,7 +212,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Try 
         Error 1000, "Test error with LOG_ERROR"
     Catch 
-        Call getErrorSession().createErrorEntity(||, LOG_ERROR)
+        Call getErrorSession().createErrorEntity(LOG_ERROR)
         Call testSuite.addResult(True, "")
     End Try 
     Call testSuite.describe("globalLogSession.entryCount is " & tempint).assertEqualsInteger(tempint, globalLogSession.entryCount)
@@ -136,7 +223,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Try 
         Error 1000, "Test Create Custom Error Entity"
     Catch 
-        Call getErrorSession().createCustomErrorEntity("", "this is a custom error message", 1352, 2525, LOG_DEBUG)
+        Call getErrorSession().createCustomErrorEntity("this is a custom error message", 1352, 2525, LOG_DEBUG)
         Call testSuite.addResult(True, "")
     End Try
     errors = getErrorSession().errors 
@@ -160,6 +247,104 @@ Function testErrors(testRunner as TestRunner) as Boolean
 
 End Function
 
+
+Function testClassHierarchyErrors(testRunner as TestRunner) as Boolean
+
+    Dim baseTester as BaseErrorTester
+    Dim childTester as ChildErrorTester 
+    Dim ee as ErrorEntity 
+
+    Dim testSuite as New TestSuite("Class Hierarchy Error Tests")
+    Call testRunner.addTestSuite(testSuite)
+
+    Dim errObj as ErrorEntity 
+    Dim errors as Variant 
+    Dim tempint as Integer 
+
+
+    Set baseTester = new BaseErrorTester()
+    Set childTester = new ChildErrorTester() 
+
+
+    ' ERR_1100
+    Call getErrorSession().reset 
+    Call testSuite.describe("Test error count is 0").assertEqualsInteger(0, getErrorSession().errorCount)
+
+    Call childTester.TryCatchError(ERR_1100, MSG_1100) 
+    Call testSuite.describe("Test error count is 1").assertEqualsInteger(1, getErrorSession().errorCount)
+
+    errors = getErrorSession().errors 
+    Set ee = errors(0)
+    Call testSuite.describe("Test error message is correct").assertEqualsString(MSG_1100, ee.message, True)
+    Call testSuite.describe("Test error line is correct").assertEqualsInteger(ChildErrorTesterLine_1, ee.lineNum)
+    Call testSuite.describe("Test error code is correct").assertEqualsInteger(ERR_1100, ee.code)
+    Call testSuite.describe("Test error library is 'UnitTests'").assertEqualsString(|UnitTests|, ee.libraryName, True)
+    Call testSuite.describe("Test error class is 'ChildErrorTester'").assertEqualsString(|ChildErrorTester|, ee.className, True)
+    Call testSuite.describe("Test error method is 'TryCatchError'").assertEqualsString(|TryCatchError|, ee.methodName, True)
+
+
+    ' ERR_1400
+    Call childTester.TryCatchError(ERR_1400, MSG_1400) 
+    Call testSuite.describe("Test error count is 2").assertEqualsInteger(2, getErrorSession().errorCount)
+
+    errors = getErrorSession().errors 
+    Set ee = errors(Ubound(errors))
+    Call testSuite.describe("Test error message is correct").assertEqualsString(MSG_1400, ee.message, True)
+    Call testSuite.describe("Test error line is correct").assertEqualsInteger(BaseErrorTesterLine, ee.lineNum)
+    Call testSuite.describe("Test error code is correct").assertEqualsInteger(ERR_1400, ee.code)
+    Call testSuite.describe("Test error library is 'UnitTests'").assertEqualsString(|UnitTests|, ee.libraryName, True)
+    Call testSuite.describe("Test error class is 'BaseErrorTester'").assertEqualsString(|BaseErrorTester|, ee.className, True)
+    Call testSuite.describe("Test error method is 'TryCatchError'").assertEqualsString(|TryCatchError|, ee.methodName, True)
+
+
+    ' ERR_1600
+    Call childTester.TryCatchError(ERR_1600, MSG_1600) 
+    Call testSuite.describe("Test error count is 3").assertEqualsInteger(3, getErrorSession().errorCount)
+
+    errors = getErrorSession().errors 
+    Set ee = errors(Ubound(errors))
+    Call testSuite.describe("Test error message is correct").assertEqualsString(MSG_1600, ee.message, True)
+    Call testSuite.describe("Test error line is correct").assertEqualsInteger(ChildErrorTesterLine_2, ee.lineNum)
+    Call testSuite.describe("Test error code is correct").assertEqualsInteger(ERR_1600, ee.code)
+    Call testSuite.describe("Test error library is 'UnitTests'").assertEqualsString(|UnitTests|, ee.libraryName, True)
+    Call testSuite.describe("Test error class is 'ChildErrorTester'").assertEqualsString(|ChildErrorTester|, ee.className, True)
+    Call testSuite.describe("Test error method is 'TryCatchError'").assertEqualsString(|TryCatchError|, ee.methodName, True)
+
+
+    ' ERR_1800
+    Call childTester.TryCatchError(ERR_1800, MSG_1800) 
+    Call testSuite.describe("Test error count is 4").assertEqualsInteger(4, getErrorSession().errorCount)
+
+    errors = getErrorSession().errors 
+    Set ee = errors(Ubound(errors))
+    Call testSuite.describe("Test error message is correct").assertEqualsString(MSG_1800, ee.message, True)
+    Call testSuite.describe("Test error line is correct").assertEqualsInteger(BaseErrorTesterLine, ee.lineNum)
+    Call testSuite.describe("Test error code is correct").assertEqualsInteger(ERR_1800, ee.code)
+    Call testSuite.describe("Test error library is 'UnitTests'").assertEqualsString(|UnitTests|, ee.libraryName, True)
+    Call testSuite.describe("Test error class is 'BaseErrorTester'").assertEqualsString(|BaseErrorTester|, ee.className, True)
+    Call testSuite.describe("Test error method is 'TryCatchError'").assertEqualsString(|TryCatchError|, ee.methodName, True)
+
+
+    ' ERR_2100
+    Call childTester.TryCatchError(ERR_2100, MSG_2100) 
+    Call testSuite.describe("Test error count is 5").assertEqualsInteger(5, getErrorSession().errorCount)
+
+    errors = getErrorSession().errors 
+    Set ee = errors(Ubound(errors))
+    Call testSuite.describe("Test error message is correct").assertEqualsString(MSG_2100, ee.message, True)
+    Call testSuite.describe("Test error line is correct").assertEqualsInteger(ChildErrorTesterLine_3, ee.lineNum)
+    Call testSuite.describe("Test error code is correct").assertEqualsInteger(ERR_2100, ee.code)
+    Call testSuite.describe("Test error library is 'UnitTests'").assertEqualsString(|UnitTests|, ee.libraryName, True)
+    Call testSuite.describe("Test error class is 'ChildErrorTester'").assertEqualsString(|ChildErrorTester|, ee.className, True)
+    Call testSuite.describe("Test error method is 'TryCatchError'").assertEqualsString(|TryCatchError|, ee.methodName, True)
+
+    Return testSuite.ranSuccessfully()
+
+End Function
+
+
+
+
 Function runThreadTests(testRunner as TestRunner) as Boolean
 
     Dim testSuite as New TestSuite("Thread Tests")
@@ -182,19 +367,8 @@ Function runThreadTests(testRunner as TestRunner) as Boolean
     Dim arr1 as Variant
     Dim isBlank as Boolean
     arr1 = Split(stackTrace, delimiter)
-    Call testSuite.describe("Check empty elements in stack trace")
+    Call testSuite.describe("Check stack trace contains no empty elements")
     Dim i as Integer
-    For i = 0 To UBound(arr1)
-        If arr1(i) = "" Then
-            isBlank = True
-            Exit For
-        End If
-    Next
-    Call testSuite.assertTrue(isBlank)
-
-    arr1 = FullTrim(arr1)
-    isBlank = False
-    Call testSuite.describe("Check empty elements removed from stack trace")
     For i = 0 To UBound(arr1)
         If arr1(i) = "" Then
             isBlank = True
@@ -216,6 +390,8 @@ Function runThreadTests(testRunner as TestRunner) as Boolean
     Return testSuite.ranSuccessfully()
 
 End Function
+
+
 
 Function runSessionTests(testRunner as TestRunner) as Boolean
 
@@ -250,6 +426,7 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
     Dim logEntrySuite as New TestSuite("Log Entry Tests")
     Dim foo as LogEntry
     Dim bar as LogEntry
+
     Call testRunner.addTestSuite(logEntrySuite)
     Call logEntrySuite.describe("Test creating new log entry without args throws error")
     Try
@@ -263,7 +440,7 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
 
     Call logEntrySuite.describe("Test creating new log entry with invalid level throws error")
     Try
-        Execute |Set foo = New LogEntry(400, "Test Log Entry", "Some extended information", "")|
+        Execute |Set foo = New LogEntry(400, "Test Log Entry", "Some extended information")|
         Call logEntrySuite.addResult(False, "Creating new log entry did not throw error")
     Catch
         Call logEntrySuite.addResult(True, "")
@@ -273,7 +450,7 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
 
     Dim timestamp as String
     timestamp = Format(Now, "yyyy-mm-dd hh:MM:ss")
-    Set foo = New LogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "")
+    Set foo = New LogEntry(LOG_FATAL, "Test Log Entry", "Some extended information")
     Call logEntrySuite.describe("Test log entry message").assertEqualsString("Test Log Entry", foo.Message, True)
     Call logEntrySuite.describe("Test log entry timestamp").assertNotEqualString("", foo.Timestamp)
     Call logEntrySuite.describe("Test log entry timestamp matches now").assertEqualsString(Left(timestamp, 14), Left(foo.Timestamp,14), True)
@@ -284,12 +461,11 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
     Call logEntrySuite.describe("Test log entry extended info").assertEqualsString("Some extended information", foo.extInfo, True)
     Call logEntrySuite.describe("Test log entry className").assertEqualsString("", foo.className, True)
 
-    Set foo = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "TestClass")
+    Set foo = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information")
 
     ' bar is the last entry created in the session
-    Set bar = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "TestClass")
+    Set bar = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information")
     Call logEntrySuite.describe("Test foo and bar entry ids different").assertNotEqualString(foo.entryID, bar.entryID)
-    Call logEntrySuite.describe("Test foo entry className").assertEqualsString("TestClass", foo.className, True)
     Call logEntrySuite.describe("Check level set correctly").assertEqualsInteger(LOG_FATAL, foo.level)
     Call logEntrySuite.describe("Check two entries").assertEqualsInteger(2, globalLogSession.entryCount)
 
@@ -323,11 +499,11 @@ Function logCollectionTests(testRunner as TestRunner) as Boolean
     Call testRunner.addTestSuite(logCollectionSuite)
 
     Dim temp as LogEntry
-    Set temp = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "")
+    Set temp = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information")
     Call logCollectionSuite.describe("Test log entries count is 1").assertEqualsInteger(1, globalLogSession.entryCount)
-    Call globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "")
-    Call globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry 2", "Some extended information", "")
-    Call globalLogSession.createLogEntry(LOG_INFO, "Test Log Entry 3", "Some extended information", "")
+    Call globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information")
+    Call globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry 2", "Some extended information")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Test Log Entry 3", "Some extended information")
     Call logCollectionSuite.describe("Test log entries count is 4").assertEqualsInteger(4, globalLogSession.entryCount)
 
     Dim tempColl as Variant
@@ -352,12 +528,19 @@ Function logFunctionTests(testRunner as TestRunner) as Boolean
     Dim i as Integer
     Dim prop as String
     Dim logEntry as LogEntry
-    Set logEntry = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "TestClass")
+
+    Set logEntry = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information")
     For i = 0 To UBound(getLogEntryPropertyNames())
         prop = getLogEntryPropertyNames()(i)
-        Call logFunctionSuite.describe("Test property " & prop & " is not empty").assertNotEqualString("", CStr(logEntry.getPropertyValue(prop)))
-    Next
+        Select Case prop 
+            Case |CLASSNAME|: 
+                Call logFunctionSuite.describe("Test property " & prop & " is blank").assertEqualsString("", Cstr(logEntry.getPropertyValue(prop)), False)
 
+            Case Else 
+                Call logFunctionSuite.describe("Test property " & prop & " is not empty").assertNotEqualString("", CStr(logEntry.getPropertyValue(prop)))
+        End Select 
+    Next
+    
     Try
         Call logFunctionSuite.describe("Test getPropertyValue throws error with bad property")
         Call logEntry.getPropertyValue("BADPROPERTY")
@@ -382,7 +565,7 @@ Function runBaseWriterTests(testRunner as testRunner) as Boolean
     Dim success as Boolean
     formatter = "{{LEVELNAME}}: {{TIMESTAMP}} - {{MESSAGE}} - {{EXTINFO}}"
     Dim baseWriter as New TestLogWriter("Base Test Writer", LOG_TRACE, LOG_FATAL, formatter)
-    Dim logEntry as New LogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", "")
+    Dim logEntry as New LogEntry(LOG_FATAL, "Test Log Entry", "Some extended information")
     expected = "FATAL: " & logEntry.Timestamp & " - Test Log Entry - Some extended information"
     
     Call baseWriterSuite.describe("Test base writer label").assertEqualsString("Base Test Writer", baseWriter.label, True)
@@ -421,15 +604,18 @@ Function runBaseWriterTests(testRunner as testRunner) as Boolean
 
     Return baseWriterSuite.ranSuccessfully()
 
-End Function
+End Function 
+
+
+
 
 Private Sub preSeedSession(baseWriter as BaseLogWriter)
     Call globalLogSession.reset()
     Call globalLogSession.addLogWriter(baseWriter)
-    Call globalLogSession.createLogEntry(LOG_FATAL, "Test Fatal Log Entry", "", "")
-    Call globalLogSession.createLogEntry(LOG_ERROR, "Test Error Log Entry", "", "")
-    Call globalLogSession.createLogEntry(LOG_WARN, "Test Warn Log Entry", "", "")
-    Call globalLogSession.createLogEntry(LOG_INFO, "Test Info Log Entry", "", "")
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Test Debug Log Entry", "", "")
-    Call globalLogSession.createLogEntry(LOG_TRACE, "Test Trace Log Entry", "", "")
+    Call globalLogSession.createLogEntry(LOG_FATAL, "Test Fatal Log Entry", "")
+    Call globalLogSession.createLogEntry(LOG_ERROR, "Test Error Log Entry", "")
+    Call globalLogSession.createLogEntry(LOG_WARN, "Test Warn Log Entry", "")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Test Info Log Entry", "")
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Test Debug Log Entry", "")
+    Call globalLogSession.createLogEntry(LOG_TRACE, "Test Trace Log Entry", "")
 End Sub

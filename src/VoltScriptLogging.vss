@@ -66,11 +66,6 @@ Private fromHere as Boolean
 '}}
 
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Types
-Private Type libmethline 
-	libraryName as String 
-	methodName as String 
-	linenum As Integer 
-End Type 
 '}}
 
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Properties
@@ -110,7 +105,6 @@ Static Private Property Get HT As String
 End Property
 
 '}}
-
 
 
 %REM
@@ -361,16 +355,18 @@ End Class
 Public Class ErrorEntity 
 
 	'{{SETI_AUTHOR_CODE_ErrorEntity_Private_Variables
-	Private stacktrace_ As String 
-
-	Private classname_ as String
-	Private libraryname_ As String 
-	Private methodname_ As String 
 	Private message_ as String
-	Private stackInstantiated_ As Boolean 
-
 	Private code_ as Integer
-	Private linenum_ as Integer 
+
+	Private classname_ As String 
+	Private library_ As String 
+	Private method_ As String 
+	Private stacktrace_ as String
+
+	Private linenum_ As Integer 
+	Private intPlaceHolder_ as Integer ' this is a throwaway variable
+
+	Private stackprocessed_ As Boolean 
 	'}}
 
 
@@ -382,6 +378,7 @@ Public Class ErrorEntity
 	%END REM
 	Public Property Get className As String 
 		'{{SETI_AUTHOR_CODE_Get.className_implementation
+		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.intPlaceHolder_)
 		Return Me.classname_
 		'}}
 
@@ -410,7 +407,8 @@ Public Class ErrorEntity
 	%END REM
 	Public Property Get libraryName As String 
 		'{{SETI_AUTHOR_CODE_Get.libraryName_implementation
-		Return Me.libraryname_
+		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.intPlaceHolder_)
+		Return Me.library_
 		'}}
 
 	End Property
@@ -424,7 +422,7 @@ Public Class ErrorEntity
 	%END REM
 	Public Property Get lineNum As Integer 
 		'{{SETI_AUTHOR_CODE_Get.lineNum_implementation 
-		return Me.linenum_
+		return Me.linenum_ 
 		'}}
 
 	End Property
@@ -452,7 +450,8 @@ Public Class ErrorEntity
 	%END REM
 	Public Property Get methodName As String 
 		'{{SETI_AUTHOR_CODE_Get.methodName_implementation
-		Return Me.methodname_ 
+		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.intPlaceHolder_)
+		Return Me.method_
 		'}}
 
 	End Property
@@ -466,16 +465,14 @@ Public Class ErrorEntity
 	%END REM
 	Public Property Get stackTrace As String 
 		'{{SETI_AUTHOR_CODE_Get.stackTrace_implementation
-		Return Me.stacktrace_ 
+		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.intPlaceHolder_)
+		Return me.stackTrace_
 		'}}
 
 	End Property
 
 
 	'{{SETI_AUTHOR_CODE_ErrorEntity_Private_Properties
-    Private Property Get CLASS_NAME As String 
-        Return "ErrorEntity"
-    End Property 
 	'}}
 
 
@@ -497,48 +494,30 @@ Public Class ErrorEntity
 		Sub New 
 		Constructor
 	
-		@param	className 	Class where the object creation was triggered.  Blank if not within a class. 
 		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used. 
 		@param  code 		Numeric code of the error. 	If less than 1 the value of Err() will be used.  
 		@param  lineNum 	Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used.  
 		@param	levelNum 	the Logging Level for conditionally creating a LogEntry 
 
 	%END REM
-	Public Sub New(className As String, message As String, code As Integer, lineNum As Integer, levelNum As Integer)
+	Public Sub New(message As String, code As Integer, lineNum As Integer, levelNum As Integer)
 		'{{SETI_AUTHOR_CODE_New_implementation
-		Dim splitStack as Variant
-		Dim splitLine as Variant
-		Dim callee as String
-		Me.classname_ = className 
 
 		If (|| = Trim(message)) Then Me.message_ = Error$() Else Me.message_ = Message 
 		If (code < 1) Then Me.code_ = Err() Else Me.code_ = code 
-		If (lineNum < 1) Then Me.lineNum_ = Erl() Else Me.lineNum_ = lineNum 
+		If (lineNum < 1) Then Me.linenum_  = Erl() Else Me.linenum_ = lineNum 
 
-		splitStack = Split(GetThreadInfo(12), Chr(10))
-
-		splitStack(0) = ""	' Remove first entry
-
-		' conditionally remove second and third entries.
-		If (1 =< Ubound(splitStack)) && ((inStr(splitStack(1), "CREATEERRORENTITY") > 0) || (inStr(splitStack(1), "CREATECUSTOMERRORENTITY") > 0)) Then splitStack(1) = ""
-		
-		splitStack = FullTrim(splitStack)
-		callee = splitStack(0)	' Library, Method, Line
-		splitLine = FullTrim(Split(callee, ","))
-		Me.libraryname_ = splitLine(0)
-		Me.methodName_ = splitLine(1)
-		Me.stackTrace_ = Join(splitStack, Chr(10)) 
+		Me.stacktrace_ = getThreadInfo(12) 
 
 		If (levelNum != NO_LOGGING) Then 
 			Try 
-				Call globalLogSession.createLogEntry(levelNum, Me.getLogMessage(), Me.stackTrace, Me.className)
+				Call globalLogSession.createLogEntry(levelNum, Me.getLogMessage(), Me.stackTrace)
 			Catch 
 				Error Err(), Error$() & | on line | & Erl() & LF & getThreadInfo(12)
 			End Try 
 		End If 
 
-
-		
+		' Call me.printSummary() 		
 		'}}
 
 	End Sub
@@ -551,22 +530,27 @@ Public Class ErrorEntity
 	%END REM
 	Public Sub printSummary() 
 		'{{SETI_AUTHOR_CODE_printSummary_implementation
-		Print Me.CLASS_NAME & |.code : | & cstr(Me.code)
 
 		Dim stackinfo as Variant 
+		Dim class_name As String 		
 		Dim i as Integer 
 
-		Print Me.CLASS_NAME & |.libraryName : | & Me.libraryName 
-		Print Me.CLASS_NAME & |.className : | & Me.className
-		Print Me.CLASS_NAME & |.methodName : | & Me.methodName 
-		Print Me.CLASS_NAME & |.linenum : | & cstr(Me.linenum)
-		Print Me.CLASS_NAME & |.message : | & Me.message 
-		Print Me.CLASS_NAME & |.StackTrace: |
-		stackinfo = Fulltrim(split(Me.StackTrace, LF))
+		stackinfo = Split(FullTrim(getThreadInfo(12)), LF)
+		stackinfo = Split(stackinfo(0), |,|) 
+		If Ubound(stackinfo) > 2 Then class_name = stackinfo(1)
 
-		For i = Lbound(stackinfo) To Ubound(stackinfo) 
-			Print HT & |(| & cstr(i) & |): | & stackinfo(i)
+		Print class_name & |.code : | & cstr(Me.code)
+		Print class_name & |.libraryName : | & Me.libraryName 
+		Print class_name & |.className : | & Me.className
+		Print class_name & |.methodName : | & Me.methodName 
+		Print class_name & |.linenum : | & cstr(Me.linenum)
+		Print class_name & |.message : | & Me.message 
+		Print class_name & |.StackTrace: |
+		stackinfo = Fulltrim(Split(Me.stackTrace, LF))
+		For i = 0 to Ubound(stackinfo) 
+			Print HT & stackinfo(i)
 		Next 
+
 		Print || 
 	'}}
 
@@ -621,11 +605,6 @@ Public Class ErrorSession
 
 
 	'{{SETI_AUTHOR_CODE_ErrorSession_Private_Properties
-    Private Property Get CLASS_NAME As String 
-        Return "ErrorSession"
-    End Property 
-
-
 	%REM
 		Property isEmpty 
 		Flag indicating if the object contains no LogEntries (entryCount = 0) 
@@ -643,7 +622,6 @@ Public Class ErrorSession
 		Function createCustomErrorEntity 
 		Spawns a new ErrorEntity object and adds it to the ErrorSession
 	
-		@param	className 	Class where the object creation was triggered. Blank if not within a class.  (Passed to the ErrorEntity constructor)
 		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used. 
 		@param  code 		Numeric code of the error. 	If less than 1 the value of Err() will be used.  
 		@param  lineNum 	Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used.  
@@ -651,9 +629,11 @@ Public Class ErrorSession
 
 		@return	ErrorEntity
 	%END REM
-	Public Function createCustomErrorEntity(className As String, message As String, code As Integer, lineNum As Integer, levelNum As Integer) As ErrorEntity 
+	Public Function createCustomErrorEntity(message As String, code As Integer, lineNum As Integer, levelNum As Integer) As ErrorEntity 
 		'{{SETI_AUTHOR_CODE_addError_implementation
-		Dim ee as New ErrorEntity(className, message, code, lineNum, levelNum)
+		Dim ee as ErrorEntity 
+
+		Set ee = New ErrorEntity(message, code, lineNum, levelNum)
 		Return me.push(ee) 
 
 		'}}
@@ -665,15 +645,14 @@ Public Class ErrorSession
 		Function createErrorEntity 
 		Spawns a new ErrorEntity object and adds it to the ErrorSession
 	
-		@param	className 	Class where the object creation was triggered. Blank if not within a class.  (Passed to the ErrorEntity constructor)
-
 		@return	ErrorEntity
 	%END REM
-	Public Function createErrorEntity(className As String, levelNum As Integer) As ErrorEntity 
+	Public Function createErrorEntity(levelNum As Integer) As ErrorEntity 
 		'{{SETI_AUTHOR_CODE_addError_implementation 
-		Dim ee as New ErrorEntity(className, ||, 0, 0, levelNum)
-		Return me.push(ee) 
+		Dim ee as ErrorEntity 
 
+		Set ee = New ErrorEntity(||, 0, 0, levelNum)
+		Return me.push(ee) 
 		'}}
 
 	End Function
@@ -737,16 +716,20 @@ End Class
 Public Class LogEntry 
 
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Variables
-	Private stackinfo_() as libmethline
-	Private stackTrace_ as Variant
 	Private message_ as String
 	Private timestamp_ as String
 	Private extinfo_ as String
-	Private classname_ as String
 	Private uuid_ as String 
-	Private libraryName_ as String
 	Private level_ as Integer
-	Private isStackInfoInstantiated_ as Boolean
+
+	Private classname_ As String 
+	Private library_ As String 
+	Private method_ As String 
+	Private stacktrace_ as String
+
+	Private linenum_ As Integer 
+
+	Private stackprocessed_ As Boolean 
 	'}}
 
 
@@ -758,6 +741,7 @@ Public Class LogEntry
 	%END REM
 	Public Property Get className As String 
 		'{{SETI_AUTHOR_CODE_Get.className_implementation
+		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
 		Return Me.classname_
 		'}}
 
@@ -845,7 +829,8 @@ Public Class LogEntry
 	%END REM
 	Public Property Get libraryName As String 
 		'{{SETI_AUTHOR_CODE_Get.libraryName_implementation
-		Return Me.libraryName_
+		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
+		Return Me.library_
 		'}}
 
 	End Property
@@ -859,10 +844,8 @@ Public Class LogEntry
 	%END REM
 	Public Property Get lineNum As Integer 
 		'{{SETI_AUTHOR_CODE_Get.lineNum_implementation
-		If (Not me.isStackInfoInstantiated_) Then
-			Call lazyLoadStack()
-		End If
-		Return me.stackinfo_(Ubound(me.stackinfo_)).linenum
+		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
+		Return Me.linenum_
 		'}}
 
 	End Property
@@ -890,10 +873,8 @@ Public Class LogEntry
 	%END REM
 	Public Property Get methodName As String 
 		'{{SETI_AUTHOR_CODE_Get.methodName_implementation
-		If (Not me.isStackInfoInstantiated_) Then
-			Call lazyLoadStack()
-		End If
-		Return me.stackinfo_(Ubound(me.stackinfo_)).methodName
+		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
+		Return Me.method_
 		'}}
 
 	End Property
@@ -901,12 +882,13 @@ Public Class LogEntry
 
 	%REM
 		Property stackTrace 
-		Stack Trace of the object creation, delimited by LF, in the format of "libraryName, methodName, linenum" for each line in the stack trace.
+		Stack Trace of the object creation, delimited by LF, in the format of "libraryName, classname, methodName, linenum" for each line in the stack trace.
 	
 		@return	String
 	%END REM
 	Public Property Get stackTrace As String 
-		'{{SETI_AUTHOR_CODE_Get.stackTrace_implementation
+		'{{SETI_AUTHOR_CODE_Get.stackTrace_implementation 
+		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
 		Return me.stackTrace_
 		'}}
 
@@ -942,9 +924,6 @@ Public Class LogEntry
 
 
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Properties
-    Private Property Get CLASS_NAME As String 
-        Return "LogEntry"
-    End Property 
 	'}}
 
 
@@ -1001,12 +980,10 @@ Public Class LogEntry
 
 		@param	extInfo 	Extended information to log
 
-		@param	className 	Class where the object creation was triggered. Blank if not within a class. 
-
 		@throws	Invalid logging level 	Invalid logging level: + levelNum. Use one of the LOG_... constants
 
 	%END REM
-	Public Sub New(levelNum As Integer, message As String, extInfo As String, className As String) 
+	Public Sub New(levelNum As Integer, message As String, extInfo As String) 
 		'{{SETI_AUTHOR_CODE_New_implementation
 
 		' set the level, message, and any extended info
@@ -1017,15 +994,14 @@ Public Class LogEntry
 		me.message_ = message 
 		me.extInfo_ = extInfo
 
-		me.classname_ = FullTrim(classname)
-
 		' start with the timestamp
 		me.timestamp_ = Format(Now(), "yyyy-MM-dd hh:mm:ss")
 
 		me.uuid_ = CreateUuid()
 
-		me.stackTrace_ = getThreadInfo(12)
-		Me.libraryName_ = getLibraryFromStack()
+		Me.stacktrace_ = getThreadInfo(12) 
+
+		' Call me.printSummary() 		
 
 		'}}
 
@@ -1039,26 +1015,31 @@ Public Class LogEntry
 	%END REM
 	Public Sub printSummary() 
 		'{{SETI_AUTHOR_CODE_printSummary_implementation
-		Print Me.CLASS_NAME & |.level : | & cstr(Me.level) 
-		Print Me.CLASS_NAME & |.levelName : | & Me.levelName
-		Print Me.CLASS_NAME & |.extInfo : | & Me.extInfo 
 
 		Dim stackinfo as Variant 
+		Dim class_name As String 
 		Dim i as Integer 
 
-		Print Me.CLASS_NAME & |.entryID: | & Me.entryID 
-		Print Me.CLASS_NAME & |.timestamp : | & Me.timestamp 
-		Print Me.CLASS_NAME & |.libraryName : | & Me.libraryName 
-		Print Me.CLASS_NAME & |.className : | & Me.className
-		Print Me.CLASS_NAME & |.methodName : | & Me.methodName 
-		Print Me.CLASS_NAME & |.linenum : | & cstr(Me.linenum)
-		Print Me.CLASS_NAME & |.message : | & Me.message 
-		Print Me.CLASS_NAME & |.StackTrace: |
-		stackinfo = Fulltrim(split(Me.StackTrace, LF))
+		stackinfo = Split(FullTrim(getThreadInfo(12)), LF)
+		stackinfo = Split(stackinfo(0), |,|) 
+		If Ubound(stackinfo) > 2 Then class_name = stackinfo(1)
 
-		For i = Lbound(stackinfo) To Ubound(stackinfo) 
-			Print HT & |(| & cstr(i) & |): | & stackinfo(i)
+		Print class_name & |.level : | & cstr(Me.level) 
+		Print class_name & |.levelName : | & Me.levelName
+		Print class_name & |.extInfo : | & Me.extInfo 
+		Print class_name & |.entryID: | & Me.entryID 
+		Print class_name & |.timestamp : | & Me.timestamp 
+		Print class_name & |.libraryName : | & Me.libraryName 
+		Print class_name & |.className : | & Me.className
+		Print class_name & |.methodName : | & Me.methodName 
+		Print class_name & |.linenum : | & cstr(Me.linenum)
+		Print class_name & |.message : | & Me.message 
+		Print class_name & |.StackTrace: |
+		stackinfo = Fulltrim(Split(Me.stackTrace, LF))
+		For i = 0 to Ubound(stackinfo) 
+			Print HT & stackinfo(i)
 		Next 
+
 		Print || 
 		'}}
 
@@ -1066,60 +1047,6 @@ Public Class LogEntry
 
 
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Methods
-
-	%REM
-		Sub lazyLoadStack 
-		Loads the internal stack by parsing the stacktrace
-
-	%END REM
-	Private Sub lazyLoadStack()
-		Dim array1 as Variant 
-		Dim array2 as Variant 
-
-		Dim tempstr2 as String 
-
-		Dim i as Integer
-		Redim me.stackinfo_(0) As libmethline
-
-		' LF is delimiter on Windows, is standard delimiter on Linux
-		array1 = split(Me.stackTrace, Chr(10))
-
-		For i = Lbound(array1) to Ubound(array1) 
-			If (i > Lbound(array1)) Then 
-				tempstr2 = FullTrim(array1(i))
-				If (len(trim(tempstr2)) > 0) Then 
-					array2 = split(tempstr2, |,|)
-					If (UBound(array2) < 2) Then Exit For	' Fix for EA3 stack trace (GetThreadInfo(12)) truncation
-					If Me.isStackInfoInstantiated_ Then Redim preserve me.stackinfo_(Ubound(me.stackinfo_) + 1) As libmethline 
-					Me.isStackInfoInstantiated_ = True 
-
-					me.stackinfo_(Ubound(me.stackinfo_)).libraryName = array2(0)
-					me.stackinfo_(Ubound(me.stackinfo_)).methodName = array2(1)
-					me.stackinfo_(Ubound(me.stackinfo_)).linenum = cint(array2(2))
-				End If
-			End If 
-		Next
-	End Sub
-
-	%REM
-		Sub getLibraryFromStack 
-		Parses the stacktrace in order to find the calling library 
-
-	%END REM
-	Private Function getLibraryFromStack() as String
-		Dim array1 as Variant
-		Dim array2 as Variant
-
-		Try
-			' LF is delimiter on Windows, is standard delimiter on Linux
-			array1 = FullTrim(Split(Me.StackTrace, Chr(10)))
-			array1 = split(array1(UBound(array1)), |,|)
-			Return array1(0)
-		Catch
-			Return GetThreadInfo(0) & "(FAILED GETLIBRARYFROMSTACK)"
-		End Try
-	End Function
-
 	'}} 
 
 End Class 
@@ -1213,9 +1140,6 @@ Public Class LogSession
 
 
 	'{{SETI_AUTHOR_CODE_LogSession_Private_Properties
-	Private Property Get CLASS_NAME As String 
-        Return "LogSession"
-    End Property 
 	%REM
 		Property isEmpty 
 		Flag indicating if the object contains no LogEntries (entryCount = 0) 
@@ -1253,11 +1177,9 @@ Public Class LogSession
 
 		@param	extInfo 	Any extended information to include with the entry or blank
 
-		@param	className 	Class from which the entry is logged or blank
-
 		@return	LogEntry
 	%END REM
-	Public Function createLogEntry(levelNum As Integer, message As String, extInfo As String, className As String) As LogEntry 
+	Public Function createLogEntry(levelNum As Integer, message As String, extInfo As String) As LogEntry 
 		'{{SETI_AUTHOR_CODE_createLogEntry_implementation
 		If Me.isEmpty Then
 			Redim Me.content_(0) As LogEntry
@@ -1265,7 +1187,7 @@ Public Class LogSession
 			Redim Preserve Me.content_(Ubound(Me.content_) + 1) As LogEntry
 		End If
 
-		Set Me.content_(Ubound(Me.content_)) = New LogEntry(levelNum, message, extInfo, className) 
+		Set Me.content_(Ubound(Me.content_)) = New LogEntry(levelNum, message, extInfo) 
 		Return Me.lastEntry
 
 		'}}
@@ -1405,7 +1327,7 @@ Public Class LogSession
 End Class 
 
 
-'{{SETI_AUTHOR_CODE_VoltscriptLogging_Private_Classes
+'{{SETI_AUTHOR_CODE_VoltscriptLogging_Private_Classes 
 '}}
 
 
@@ -1472,4 +1394,69 @@ Private Function isValidLevel(levelNum as Integer, includeNoLogging as Boolean) 
 	Return (levelNum = LOG_FATAL) || (levelNum = LOG_ERROR) || (levelNum = LOG_WARN) || (levelNum = LOG_INFO) || (levelNum = LOG_DEBUG) || (levelNum = LOG_TRACE)
 End Function
 
+
+Private Function getLibClassMethLine(stacktrace As String, libraryname As String, classname as String, methodname As String, linenum As Integer) As Boolean 
+		Dim stackcontent as Variant 
+		Dim i as Integer 
+
+		Dim lines As Variant 
+		Dim elements As Variant 
+
+		Dim lineentry As String 
+		Dim libclassmeth As String
+
+		Dim idx as Integer 
+		Dim result as Integer 
+
+		Dim isEA3 As Boolean 
+
+		' BEGIN CODE 
+		lines = FullTrim(split(stacktrace, LF)) 
+		
+		For idx = 0 to Ubound(lines) 
+			lineentry = Trim$(cstr(lines(idx)))		
+			libclassmeth = Trim$(strLeftBack(lineentry, |,|))
+
+			Select Case libclassmeth 
+				Case |VOLTSCRIPTLOGGING,NEW|, _ 
+					|VOLTSCRIPTLOGGING,CREATELOGENTRY|, _ 
+					|VOLTSCRIPTLOGGING,NEW|, _ 
+					|VOLTSCRIPTLOGGING,CREATEERRORENTITY|, _ 
+					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTITY|
+
+					lines(idx) = ""
+					isEA3 = True 
+
+				Case |VOLTSCRIPTLOGGING,LOGENTRY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,LOGSESSION,CREATELOGENTRY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORENTITY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATEERRORENTITY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATECUSTOMERRORENTITY|
+
+					lines(idx) = ""
+
+				Case Else 
+
+					elements = Split(Trim(lineentry), |,|)
+				
+					If isEA3 Then 
+						libraryname = elements(0)
+						methodname = elements(1) 
+						linenum = cint(elements(2))
+
+					Else 
+						libraryname = elements(0)
+						classname = elements(1) 
+						methodname = elements(2) 
+						linenum = cint(elements(3))
+					End If 
+
+					Exit For 
+			End Select 
+		Next 
+
+		stacktrace = Join(FullTrim(lines), LF)
+
+		Return true 
+End Function 
 '}} 
