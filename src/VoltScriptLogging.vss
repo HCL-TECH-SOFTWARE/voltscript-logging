@@ -728,8 +728,6 @@ Public Class LogEntry
 	Private stacktrace_ as String
 
 	Private linenum_ As Integer 
-
-	Private stackprocessed_ As Boolean 
 	'}}
 
 
@@ -741,7 +739,6 @@ Public Class LogEntry
 	%END REM
 	Public Property Get className As String 
 		'{{SETI_AUTHOR_CODE_Get.className_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
 		Return Me.classname_
 		'}}
 
@@ -829,7 +826,6 @@ Public Class LogEntry
 	%END REM
 	Public Property Get libraryName As String 
 		'{{SETI_AUTHOR_CODE_Get.libraryName_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
 		Return Me.library_
 		'}}
 
@@ -844,7 +840,6 @@ Public Class LogEntry
 	%END REM
 	Public Property Get lineNum As Integer 
 		'{{SETI_AUTHOR_CODE_Get.lineNum_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
 		Return Me.linenum_
 		'}}
 
@@ -873,7 +868,6 @@ Public Class LogEntry
 	%END REM
 	Public Property Get methodName As String 
 		'{{SETI_AUTHOR_CODE_Get.methodName_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
 		Return Me.method_
 		'}}
 
@@ -888,7 +882,6 @@ Public Class LogEntry
 	%END REM
 	Public Property Get stackTrace As String 
 		'{{SETI_AUTHOR_CODE_Get.stackTrace_implementation 
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
 		Return me.stackTrace_
 		'}}
 
@@ -1000,6 +993,8 @@ Public Class LogEntry
 		me.uuid_ = CreateUuid()
 
 		Me.stacktrace_ = getThreadInfo(12) 
+		' Need to extract and re-set stacktrace here or its garbage during shutdown
+		Call getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
 
 		' Call me.printSummary() 		
 
