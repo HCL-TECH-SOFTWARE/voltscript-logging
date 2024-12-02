@@ -27,15 +27,14 @@ Option Public
 
 
 '{{Constants
-Public Const NO_LOGGING = 0 	' Only used in LogWriters, to prevent logging any log entries.
-Public Const LOG_TRACE = 1 	 	' Lowest logging level, for most verbose logging.
-Public Const LOG_DEBUG = 2 	 	' Fifth-highest logging level, for more extensive messages than most support requires.
-Public Const LOG_INFO = 4 	 	' Fourth-highest logging level, for informational messages.
-Public Const LOG_WARN = 8 	 	' Third-highest logging level, for log entries that are not errors but should be addressed.
-Public Const LOG_ERROR = 16 	' Second-highest logging level, for errors that are not fatal to continuing process.
-Public Const LOG_FATAL = 32 	' Highest logging level.
+Public Const LOG_FATAL = 32 	 ' Highest logging level.
+Public Const LOG_TRACE = 1 	 ' Lowest logging level, for most verbose logging.
+Public Const LOG_INFO = 4 	 ' Fourth-highest logging level, for informational messages.
+Public Const NO_LOGGING = 0 	 ' Only used in LogWriters, to prevent logging any log entries.
+Public Const LOG_ERROR = 16 	 ' Second-highest logging level, for errors that are not fatal to continuing process.
+Public Const LOG_DEBUG = 2 	 ' Fifth-highest logging level, for more extensive messages than most support requires.
+Public Const LOG_WARN = 8 	 ' Third-highest logging level, for log entries that are not errors but should be addressed.
 '}}
-
 
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Constants
 Private Const LIBRARY_NAME = "VoltscriptLogging"
@@ -107,6 +106,37 @@ End Property
 '}}
 
 
+
+	'{{SETI_AUTHOR_CODE_LogEntry_Private_Methods
+	%REM
+		Function getLogEntryPropertyNames 
+		Gets the Property Names of the LogEntry Class
+
+		@return	Variant
+	%END REM
+	Private Function getLogEntryPropertyNames() As Variant 
+		Dim props(12) as String
+
+		If (props(0) = "") Then
+			props(0) = "STACKTRACE"
+			props(1) = "STACKTRACE_COMPACT"
+			props(2) = "LEVELNAME"
+			props(3) = "ENTRYID"
+			props(4) = "LEVEL"
+			props(5) = "MESSAGE"
+			props(6) = "CLASSNAME"
+			props(7) = "LINENUM"
+			props(8) = "CALLEELINENUM"
+			props(9) = "LIBRARYNAME"
+			props(10) = "METHODNAME"
+			props(11) = "TIMESTAMP"
+			props(12) = "EXTINFO"
+		End If
+
+		Return props
+
+	End Function
+	'}}
 %REM
 	Class BaseLogWriter 
 	Abstract class for writing log entries from the LogSession
@@ -124,14 +154,13 @@ Public Class BaseLogWriter
 
 
 	%REM
-		Property formatter 
-		String to manage output format, using mustache templating for properties of a Log Entry.
-	
-		@return	String
+		Property minLevel 
+
+		@return	Integer
 	%END REM
-	Public Property Get formatter As String 
-		'{{SETI_AUTHOR_CODE_Get.formatter_implementation
-		Return Me.formatter_
+	Public Property Get minLevel As Integer 
+		'{{SETI_AUTHOR_CODE_Get.minLevel_implementation
+		Return Me.minLevel_
 		'}}
 
 	End Property
@@ -166,13 +195,14 @@ Public Class BaseLogWriter
 
 
 	%REM
-		Property minLevel 
-
-		@return	Integer
+		Property formatter 
+		String to manage output format, using mustache templating for properties of a Log Entry.
+	
+		@return	String
 	%END REM
-	Public Property Get minLevel As Integer 
-		'{{SETI_AUTHOR_CODE_Get.minLevel_implementation
-		Return Me.minLevel_
+	Public Property Get formatter As String 
+		'{{SETI_AUTHOR_CODE_Get.formatter_implementation
+		Return Me.formatter_
 		'}}
 
 	End Property
@@ -182,31 +212,21 @@ Public Class BaseLogWriter
 
 
 	%REM
-		Function convertLogEntryToMessage 
-		Generates a message using information from a logEntry instance and the object's formatter text (one of the constructor arguments).  Override this method to skip using the formatter.
+		Sub initializeLog 
+		Overload this method to do any setup before processing the LogEntry objects.
 	
-		@param	logEntry 	Log Entry from which to generate the message.
-
-		@return	String
-		@throws	No Formatter 	"No formatter set for log writer " & Me.label
-
 	%END REM
-	Public Function convertLogEntryToMessage(logEntry As LogEntry) As String 
-		'{{SETI_AUTHOR_CODE_convertLogEntryToMessage_implementation
-		If (Me.formatter = "") Then
-			Error 1000, "No formatter set for log writer " & Me.label
-		Else
-			Return getFormattedString(logEntry)
-		End If
+	Public Sub initializeLog() 
+		'{{SETI_AUTHOR_CODE_initializeLog_implementation
 		'}}
 
-	End Function
+	End Sub
 
 
 	%REM
 		Sub Delete 
 		Destructor for the class.  
-	Runs during cleanup of the object instance and outputs log entries
+Runs during cleanup of the object instance and outputs log entries
 	
 	%END REM
 	Public Sub Delete() 
@@ -222,12 +242,27 @@ Public Class BaseLogWriter
 
 
 	%REM
-		Sub initializeLog 
-		Overload this method to do any setup before processing the LogEntry objects.
+		Sub terminateLog 
+		Overload this method to do any setup after processing the LogEntry objects.  This method is called internally at the end of the writeToLog() method. 
 	
 	%END REM
-	Public Sub initializeLog() 
-		'{{SETI_AUTHOR_CODE_initializeLog_implementation
+	Public Sub terminateLog() 
+		'{{SETI_AUTHOR_CODE_terminateLog_implementation
+		'}}
+
+	End Sub
+
+
+	%REM
+		Sub outputLogEntryMessage 
+		Writes a message to the output.    Overload this message for specific implementations.
+	
+		@param	message 	Message to be outputted
+
+	%END REM
+	Public Sub outputLogEntryMessage(message As String) 
+		'{{SETI_AUTHOR_CODE_outputLogEntryMessage_implementation
+		Print message
 		'}}
 
 	End Sub
@@ -252,33 +287,6 @@ Public Class BaseLogWriter
 		Me.minLevel_ = minLevel
 		Me.maxLevel_ = maxLevel
 		Me.formatter_ = formatter
-		'}}
-
-	End Sub
-
-
-	%REM
-		Sub outputLogEntryMessage 
-		Writes a message to the output.    Overload this message for specific implementations.
-	
-		@param	message 	Message to be outputted
-
-	%END REM
-	Public Sub outputLogEntryMessage(message As String) 
-		'{{SETI_AUTHOR_CODE_outputLogEntryMessage_implementation
-		Print message
-		'}}
-
-	End Sub
-
-
-	%REM
-		Sub terminateLog 
-		Overload this method to do any setup after processing the LogEntry objects.  This method is called internally at the end of the writeToLog() method. 
-	
-	%END REM
-	Public Sub terminateLog() 
-		'{{SETI_AUTHOR_CODE_terminateLog_implementation
 		'}}
 
 	End Sub
@@ -320,19 +328,42 @@ Public Class BaseLogWriter
 	End Function
 
 
+	%REM
+		Function convertLogEntryToMessage 
+		Generates a message using information from a logEntry instance and the object's formatter text (one of the constructor arguments).  Override this method to skip using the formatter.
+	
+		@param	logEntry 	Log Entry from which to generate the message.
+
+		@return	String
+		@throws	No Formatter 	"No formatter set for log writer " & Me.label
+
+	%END REM
+	Public Function convertLogEntryToMessage(logEntry As LogEntry) As String 
+		'{{SETI_AUTHOR_CODE_convertLogEntryToMessage_implementation
+		If (Me.formatter = "") Then
+			Error 1000, "No formatter set for log writer " & Me.label
+		Else
+			Return getFormattedString(logEntry)
+		End If
+		'}}
+
+	End Function
+
 	'{{SETI_AUTHOR_CODE_BaseLogWriter_Private_Methods
 	Private Function getFormattedString(logEntry as LogEntry) as String
 		Dim key as String
 		Dim outputStr as String
 		Dim i as Long
+		Dim propNames as Variant
 		Dim propVal as Variant
 
 		Try
 
 		outputStr = Me.formatter
 		If (outputStr != "") Then
-			For i = 0 to UBound(getLogEntryPropertyNames())
-				key = getLogEntryPropertyNames()(i)
+			propNames = getLogEntryPropertyNames()
+			For i = 0 to UBound(propNames)
+				key = propNames(i)
 				propVal = logEntry.getPropertyValue(key)
 				outputStr = Replace(outputStr, |{{| & key & |}}|, CStr(propVal))
 			Next
@@ -348,19 +379,19 @@ End Class
 
 
 %REM
-	Class ErrorEntity 
+	Class ErrorEntry 
 	Carrier for Error information.
  
 %END REM
-Public Class ErrorEntity 
+Public Class ErrorEntry 
 
-	'{{SETI_AUTHOR_CODE_ErrorEntity_Private_Variables
+	'{{SETI_AUTHOR_CODE_ErrorEntry_Private_Variables
 	Private message_ as String
 	Private code_ as Integer
 
 	Private classname_ As String 
-	Private library_ As String 
-	Private method_ As String 
+	Private libraryName_ As String 
+	Private methodName_ As String 
 	Private stacktrace_ as String
 
 	Private linenum_ As Integer 
@@ -371,15 +402,14 @@ Public Class ErrorEntity
 
 
 	%REM
-		Property className 
-		VoltScript class from which the the object creation was triggered (passed into the constructor). 
+		Property libraryName 
+		Name of the VSS library where the object creation was triggered. 
 	
 		@return	String
 	%END REM
-	Public Property Get className As String 
-		'{{SETI_AUTHOR_CODE_Get.className_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.intPlaceHolder_)
-		Return Me.classname_
+	Public Property Get libraryName As String 
+		'{{SETI_AUTHOR_CODE_Get.libraryName_implementation
+		Return Me.libraryName_
 		'}}
 
 	End Property
@@ -400,15 +430,42 @@ Public Class ErrorEntity
 
 
 	%REM
-		Property libraryName 
-		Name of the VSS library where the object creation was triggered. 
+		Property message 
+		The text message of the object (passed as an argument to the object's constructor).
 	
 		@return	String
 	%END REM
-	Public Property Get libraryName As String 
-		'{{SETI_AUTHOR_CODE_Get.libraryName_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.intPlaceHolder_)
-		Return Me.library_
+	Public Property Get message As String 
+		'{{SETI_AUTHOR_CODE_Get.message_implementation
+		Return Me.message_
+		'}}
+
+	End Property
+
+
+	%REM
+		Property className 
+		VoltScript class from which the the object creation was triggered (passed into the constructor). 
+	
+		@return	String
+	%END REM
+	Public Property Get className As String 
+		'{{SETI_AUTHOR_CODE_Get.className_implementation
+		Return Me.classname_
+		'}}
+
+	End Property
+
+
+	%REM
+		Property methodName 
+		Name of the method (Property, Event, Sub, or Function) where the object creation was triggered. 
+	
+		@return	String
+	%END REM
+	Public Property Get methodName As String 
+		'{{SETI_AUTHOR_CODE_Get.methodName_implementation
+		Return Me.methodName_
 		'}}
 
 	End Property
@@ -429,35 +486,6 @@ Public Class ErrorEntity
 
 
 	%REM
-		Property message 
-		The text message of the object (passed as an argument to the object's constructor).
-	
-		@return	String
-	%END REM
-	Public Property Get message As String 
-		'{{SETI_AUTHOR_CODE_Get.message_implementation
-		Return Me.message_
-		'}}
-
-	End Property
-
-
-	%REM
-		Property methodName 
-		Name of the method (Property, Event, Sub, or Function) where the object creation was triggered. 
-	
-		@return	String
-	%END REM
-	Public Property Get methodName As String 
-		'{{SETI_AUTHOR_CODE_Get.methodName_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.intPlaceHolder_)
-		Return Me.method_
-		'}}
-
-	End Property
-
-
-	%REM
 		Property stackTrace 
 		Stack Trace of the object creation, delimited by LF, in the format of "libraryName, methodName, linenum" for each line in the stack trace.
 	
@@ -465,42 +493,58 @@ Public Class ErrorEntity
 	%END REM
 	Public Property Get stackTrace As String 
 		'{{SETI_AUTHOR_CODE_Get.stackTrace_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.intPlaceHolder_)
 		Return me.stackTrace_
 		'}}
 
 	End Property
 
-
-	'{{SETI_AUTHOR_CODE_ErrorEntity_Private_Properties
+	'{{SETI_AUTHOR_CODE_ErrorEntry_Private_Properties
 	'}}
 
 
 	%REM
-		Function getLogMessage 
-		Summary information about the Error to be included when creating a LogEvent. 
+		Sub printSummary 
+		Outputs a summary of the object's property information to console. Only relevant for basic debugging.
 	
-		@return	String
 	%END REM
-	Public Function getLogMessage() As String 
-		'{{SETI_AUTHOR_CODE_getLogMessage_implementation
-		Return |Error | & Me.code & |, | & Me.message & | at line | & Me.lineNum
-		'}}
+	Public Sub printSummary() 
+		'{{SETI_AUTHOR_CODE_printSummary_implementation
 
-	End Function
+		Dim stackinfo as Variant 		
+		Dim i as Integer 
+
+		Print |ErrorEntry.code : | & cstr(Me.code)
+		Print |ErrorEntry.libraryName : | & Me.libraryName 
+		Print |ErrorEntry.className : | & Me.className
+		Print |ErrorEntry.methodName : | & Me.methodName 
+		Print |ErrorEntry.linenum : | & cstr(Me.linenum)
+		Print |ErrorEntry.message : | & Me.message 
+		Print |ErrorEntry.StackTrace: |
+		stackinfo = Fulltrim(Split(Me.stackTrace, LF))
+		For i = 0 to Ubound(stackinfo) 
+			Print HT & stackinfo(i)
+		Next 
+
+		Print || 
+	'}}
+
+	End Sub
 
 
 	%REM
 		Sub New 
 		Constructor
 	
-		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used. 
-		@param  code 		Numeric code of the error. 	If less than 1 the value of Err() will be used.  
-		@param  lineNum 	Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used.  
-		@param	levelNum 	the Logging Level for conditionally creating a LogEntry 
+		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used.
+
+		@param	code 	Numeric code of the error. 	If less than 1 the value of Err() will be used.
+
+		@param	lineNum 	Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used.
+
+		@param	levelNum 	the Logging Level for conditionally creating a LogEntry
 
 	%END REM
-	Public Sub New(message As String, code As Integer, lineNum As Integer, levelNum As Integer)
+	Public Sub New(message As String, code As Integer, lineNum As Integer, levelNum As Integer) 
 		'{{SETI_AUTHOR_CODE_New_implementation
 
 		If (|| = Trim(message)) Then Me.message_ = Error$() Else Me.message_ = Message 
@@ -517,44 +561,98 @@ Public Class ErrorEntity
 			End Try 
 		End If 
 
-		' Call me.printSummary() 		
+		Call Me.setLibClassMethLine()
 		'}}
 
 	End Sub
 
 
 	%REM
-		Sub printSummary 
-		Outputs a summary of the object's property information to console. Only relevant for basic debugging.
+		Function getLogMessage 
+		Summary information about the Error to be included when creating a LogEvent. 
 	
+		@return	String
 	%END REM
-	Public Sub printSummary() 
-		'{{SETI_AUTHOR_CODE_printSummary_implementation
+	Public Function getLogMessage() As String 
+		'{{SETI_AUTHOR_CODE_getLogMessage_implementation
+		Return |Error | & Me.code & |, | & Me.message & | at line | & Me.lineNum
+		'}}
 
-		Dim stackinfo as Variant 
-		Dim class_name As String 		
+	End Function
+
+	'{{SETI_AUTHOR_CODE_LogEntry_Private_Methods
+	Private Sub setLibClassMethLine()
+		Dim stackcontent as Variant 
 		Dim i as Integer 
 
-		stackinfo = Split(FullTrim(getThreadInfo(12)), LF)
-		stackinfo = Split(stackinfo(0), |,|) 
-		If Ubound(stackinfo) > 2 Then class_name = stackinfo(1)
+		Dim lines As Variant 
+		Dim firstLine as Variant
+		Dim elements As Variant 
 
-		Print class_name & |.code : | & cstr(Me.code)
-		Print class_name & |.libraryName : | & Me.libraryName 
-		Print class_name & |.className : | & Me.className
-		Print class_name & |.methodName : | & Me.methodName 
-		Print class_name & |.linenum : | & cstr(Me.linenum)
-		Print class_name & |.message : | & Me.message 
-		Print class_name & |.StackTrace: |
-		stackinfo = Fulltrim(Split(Me.stackTrace, LF))
-		For i = 0 to Ubound(stackinfo) 
-			Print HT & stackinfo(i)
+		Dim lineentry As String 
+		Dim libclassmeth As String
+
+		Dim idx as Integer 
+		Dim result as Integer 
+
+		Dim isEA3 As Boolean 
+
+		' BEGIN CODE 
+		lines = split(stacktrace, LF) 
+		firstLine = split(lines(0), ",")
+
+		If (UBound(firstLine) < 2) Then 
+			Return
+		Else
+			isEA3 = True 
+		End If
+
+		For idx = 0 to Ubound(lines) 
+			lineentry = Trim$(cstr(lines(idx)))		
+			libclassmeth = Trim$(strLeftBack(lineentry, |,|))
+			elements = Split(Trim(lineentry), |,|)
+			If (UBound(elements) < 2) Then Exit For
+
+			Select Case libclassmeth 
+				Case |VOLTSCRIPTLOGGING,NEW|, _ 
+					|VOLTSCRIPTLOGGING,CREATELOGENTRY|, _ 
+					|VOLTSCRIPTLOGGING,NEW|, _ 
+					|VOLTSCRIPTLOGGING,CREATEERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTRY|
+
+					lines(idx) = ""
+
+				Case |VOLTSCRIPTLOGGING,LOGENTRY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,LOGSESSION,CREATELOGENTRY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORENTRY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATEERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATECUSTOMERRORENTRY|
+
+					lines(idx) = ""
+
+				Case Else 
+
+					If isEA3 Then 
+						Me.libraryname_ = elements(0)
+						Me.methodname_ = elements(1) 
+						Me.linenum_ = cint(elements(2))
+
+					Else 
+						Me.libraryname_ = elements(0)
+						Me.classname_ = elements(1) 
+						Me.methodname_ = elements(2) 
+						Me.linenum_ = cint(elements(3))
+					End If 
+
+					Exit For 
+			End Select 
 		Next 
 
-		Print || 
+		Me.stacktrace_ = Join(FullTrim(lines), LF)
+	End Sub 
 	'}}
-
-	End Sub
+	'{{SETI_AUTHOR_CODE_ErrorEntry_Private_Methods
+	'}} 
 
 End Class 
 
@@ -592,7 +690,7 @@ Public Class ErrorSession
 
 	%REM
 		Property errors 
-		All ErrorEntity instances that have been added to the object.
+		Array of ErrorEntity objects representing all of the errors that have been added to the session. 
 	
 		@return	Variant
 	%END REM
@@ -602,7 +700,6 @@ Public Class ErrorSession
 		'}}
 
 	End Property
-
 
 	'{{SETI_AUTHOR_CODE_ErrorSession_Private_Properties
 	%REM
@@ -619,43 +716,17 @@ Public Class ErrorSession
 
 
 	%REM
-		Function createCustomErrorEntity 
-		Spawns a new ErrorEntity object and adds it to the ErrorSession
+		Sub reset 
+		Resets the ErrorSession and clears all error information. 
 	
-		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used. 
-		@param  code 		Numeric code of the error. 	If less than 1 the value of Err() will be used.  
-		@param  lineNum 	Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used.  
-		@param	levelNum 	the Logging Level for conditionally creating a LogEntry 
-
-		@return	ErrorEntity
 	%END REM
-	Public Function createCustomErrorEntity(message As String, code As Integer, lineNum As Integer, levelNum As Integer) As ErrorEntity 
-		'{{SETI_AUTHOR_CODE_addError_implementation
-		Dim ee as ErrorEntity 
-
-		Set ee = New ErrorEntity(message, code, lineNum, levelNum)
-		Return me.push(ee) 
-
+	Public Sub reset() 
+		'{{SETI_AUTHOR_CODE_reset_implementation
+		Me.content_ = NullValue
+		Me.index_ = 0
 		'}}
 
-	End Function
-
-
-	%REM
-		Function createErrorEntity 
-		Spawns a new ErrorEntity object and adds it to the ErrorSession
-	
-		@return	ErrorEntity
-	%END REM
-	Public Function createErrorEntity(levelNum As Integer) As ErrorEntity 
-		'{{SETI_AUTHOR_CODE_addError_implementation 
-		Dim ee as ErrorEntity 
-
-		Set ee = New ErrorEntity(||, 0, 0, levelNum)
-		Return me.push(ee) 
-		'}}
-
-	End Function
+	End Sub
 
 
 	%REM
@@ -675,26 +746,64 @@ Do not directly use this constructor, use getErrorSession() instead.
 
 
 	%REM
-		Sub reset 
-		Resets the ErrorSession and clears all error information. 
+		Function createErrorEntry 
+		Spawns a new ErrorEntity object and adds it to the ErrorSession.  Conditionally spawns a LogEntry in the Global LogSession instance. 
 	
+		@param	className 	Class where the object creation was triggered. Blank if not within a class.  (Passed to the ErrorEntity constructor)
+
+		@param	levelNum 	Logging Level (NO_LOGGING, LOG_TRACE, LOG_DEBUG, etc).  Used for conditionally creating a LogEntry 
+
+		@return	ErrorEntry
 	%END REM
-	Public Sub reset() 
-		'{{SETI_AUTHOR_CODE_reset_implementation
-		Me.content_ = NullValue
-		Me.index_ = 0
+	Public Function createErrorEntry(className As String, levelNum As Integer) As ErrorEntry 
+		'{{SETI_AUTHOR_CODE_addError_implementation 
+		Dim ee as ErrorEntry 
+
+		Set ee = New ErrorEntry(||, 0, 0, levelNum)
+		Return me.push(ee) 
+		'}}
+		'{{SETI_AUTHOR_CODE_createErrorEntry_implementation
 		'}}
 
-	End Sub
+	End Function
 
+
+	%REM
+		Function createCustomErrorEntry 
+		Spawns a new Custom ErrorEntity object and adds it to the ErrorSession.  Conditionally spawns a LogEntry in the Global LogSession instance. 
+	
+		@param	className 	Class where the object creation was triggered. Blank if not within a class.  (Passed to the ErrorEntity constructor)
+
+		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used. 
+
+		@param	code 	Numeric code of the error. 	If less than 1 the value of Err() will be used.  
+
+		@param	lineNum 	Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used. 
+
+		@param	levelNum 	Logging Level (NO_LOGGING, LOG_TRACE, LOG_DEBUG, etc).  Used for conditionally creating a LogEntry 
+
+		@return	ErrorEntry
+	%END REM
+	Public Function createCustomErrorEntry(className As String, message As String, code As Integer, lineNum As Integer, levelNum As Integer) As ErrorEntry 
+		'{{SETI_AUTHOR_CODE_addError_implementation
+		Dim ee as ErrorEntry 
+
+		Set ee = New ErrorEntry(message, code, lineNum, levelNum)
+		Return me.push(ee) 
+
+		'}}
+		'{{SETI_AUTHOR_CODE_createCustomErrorEntry_implementation
+		'}}
+
+	End Function
 
 	'{{SETI_AUTHOR_CODE_ErrorSession_Private_Methods
-	Private Function push(source As ErrorEntity) As ErrorEntity
+	Private Function push(source As ErrorEntry) As ErrorEntry
 
 		If (IsEmpty(Me.content_)) Then
-			Redim Me.content_(0) As ErrorEntity
+			Redim Me.content_(0) As ErrorEntry
 		Else
-			Redim Preserve Me.content_(Ubound(Me.content_) + 1) As ErrorEntity
+			Redim Preserve Me.content_(Ubound(Me.content_) + 1) As ErrorEntry
 		End If
 
 		Set Me.content_(Ubound(Me.content_)) = source
@@ -703,7 +812,6 @@ Do not directly use this constructor, use getErrorSession() instead.
 
 	End Function  
 	'}} 
-
 
 End Class 
 
@@ -723,26 +831,26 @@ Public Class LogEntry
 	Private level_ as Integer
 
 	Private classname_ As String 
-	Private library_ As String 
-	Private method_ As String 
+	Private libraryName_ As String 
+	Private methodName_ As String 
 	Private stacktrace_ as String
 
 	Private linenum_ As Integer 
+	Private calleeLinenum_ as Integer
 
 	Private stackprocessed_ As Boolean 
 	'}}
 
 
 	%REM
-		Property className 
-		VoltScript class from which the the object creation was triggered (passed into the constructor). 
+		Property uuID 
+		Unique identifier for the instance
 	
 		@return	String
 	%END REM
-	Public Property Get className As String 
-		'{{SETI_AUTHOR_CODE_Get.className_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
-		Return Me.classname_
+	Public Property Get uuID As String 
+		'{{SETI_AUTHOR_CODE_Get.uuID_implementation
+			return Me.uuid_ 
 		'}}
 
 	End Property
@@ -763,28 +871,98 @@ Public Class LogEntry
 
 
 	%REM
-		Property extInfo 
-		Extended info that may be included with the message, such as debug info, stack trace, etc.  Set in the object's constructor. 
+		Property libraryName 
+		Name of the VSS library where the object creation was triggered. 
 	
 		@return	String
 	%END REM
-	Public Property Get extInfo As String 
-		'{{SETI_AUTHOR_CODE_Get.extInfo_implementation
-		Return Me.extInfo_
-		'}}	
+	Public Property Get libraryName As String 
+		'{{SETI_AUTHOR_CODE_Get.libraryName_implementation
+		Return Me.libraryName_
+		'}}
 
 	End Property
 
 
 	%REM
-		Property level 
-		The logging level assigned to the object.  Specified as an argument in the object's constructor. 
+		Property lineNum 
+		Line number of the running code where the object creation was triggered. 
 	
 		@return	Integer
 	%END REM
-	Public Property Get level As Integer 
-		'{{SETI_AUTHOR_CODE_Get.level_implementation
-		Return Me.level_
+	Public Property Get lineNum As Integer 
+		'{{SETI_AUTHOR_CODE_Get.lineNum_implementation
+		Return Me.linenum_
+		'}}
+
+	End Property
+
+
+	%REM
+		Property message 
+		The text message of the object (passed as an argument to the object's constructor).
+	
+		@return	String
+	%END REM
+	Public Property Get message As String 
+		'{{SETI_AUTHOR_CODE_Get.message_implementation
+		Return Me.message_
+		'}}
+
+	End Property
+
+
+	%REM
+		Property className 
+		VoltScript class from which the the object creation was triggered (passed into the constructor). 
+	
+		@return	String
+	%END REM
+	Public Property Get className As String 
+		'{{SETI_AUTHOR_CODE_Get.className_implementation
+		Return Me.classname_
+		'}}
+
+	End Property
+
+
+	%REM
+		Property methodName 
+		Name of the method (Property, Event, Sub, or Function) where the object creation was triggered. 
+	
+		@return	String
+	%END REM
+	Public Property Get methodName As String 
+		'{{SETI_AUTHOR_CODE_Get.methodName_implementation
+		Return Me.methodName_
+		'}}
+
+	End Property
+
+
+	%REM
+		Property timeStamp 
+		Timestamp of when the object instance was created. This is date/time in yyyy-MM-dd hh:mm:ss format in the current platform's timezone.
+	
+		@return	String
+	%END REM
+	Public Property Get timeStamp As String 
+		'{{SETI_AUTHOR_CODE_Get.timeStamp_implementation
+		Return Me.timestamp_
+		'}}
+
+	End Property
+
+
+	%REM
+		Property stackTrace 
+		Stack Trace of the object creation, delimited by LF, in the format of "libraryName, methodName, linenum" for each line in the stack trace.
+	
+		@return	String
+	%END REM
+	Public Property Get stackTrace As String 
+		'{{SETI_AUTHOR_CODE_Get.stackTrace_implementation 
+		Return me.stackTrace_
 		'}}
 
 	End Property
@@ -822,153 +1000,84 @@ Public Class LogEntry
 
 
 	%REM
-		Property libraryName 
-		Name of the VSS library where the object creation was triggered. 
-	
-		@return	String
-	%END REM
-	Public Property Get libraryName As String 
-		'{{SETI_AUTHOR_CODE_Get.libraryName_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
-		Return Me.library_
-		'}}
-
-	End Property
-
-
-	%REM
-		Property lineNum 
-		Line number of the running code where the object creation was triggered. 
+		Property level 
+		The logging level assigned to the object.  Specified as an argument in the object's constructor. 
 	
 		@return	Integer
 	%END REM
-	Public Property Get lineNum As Integer 
+	Public Property Get level As Integer 
+		'{{SETI_AUTHOR_CODE_Get.level_implementation
+		Return Me.level_
+		'}}
+
+	End Property
+
+
+	%REM
+		Property extInfo 
+		Extended info that may be included with the message, such as debug info, stack trace, etc.  Set in the object's constructor. 
+	
+		@return	String
+	%END REM
+	Public Property Get extInfo As String 
+		'{{SETI_AUTHOR_CODE_Get.extInfo_implementation
+		Return Me.extInfo_
+		'}}	
+
+	End Property
+
+
+	%REM
+		Property calleeLineNum 
+
+		@return	Integer
+	%END REM
+	Public Property Get calleeLineNum As Integer 
 		'{{SETI_AUTHOR_CODE_Get.lineNum_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
-		Return Me.linenum_
+		Return Me.calleeLinenum_
+		'}}
+		'{{SETI_AUTHOR_CODE_Get.calleeLineNum_implementation
 		'}}
 
 	End Property
-
-
-	%REM
-		Property message 
-		The text message of the object (passed as an argument to the object's constructor).
-	
-		@return	String
-	%END REM
-	Public Property Get message As String 
-		'{{SETI_AUTHOR_CODE_Get.message_implementation
-		Return Me.message_
-		'}}
-
-	End Property
-
-
-	%REM
-		Property methodName 
-		Name of the method (Property, Event, Sub, or Function) where the object creation was triggered. 
-	
-		@return	String
-	%END REM
-	Public Property Get methodName As String 
-		'{{SETI_AUTHOR_CODE_Get.methodName_implementation
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
-		Return Me.method_
-		'}}
-
-	End Property
-
-
-	%REM
-		Property stackTrace 
-		Stack Trace of the object creation, delimited by LF, in the format of "libraryName, classname, methodName, linenum" for each line in the stack trace.
-	
-		@return	String
-	%END REM
-	Public Property Get stackTrace As String 
-		'{{SETI_AUTHOR_CODE_Get.stackTrace_implementation 
-		If Not Me.stackprocessed_ Then Me.stackprocessed_ = getLibClassMethLine(Me.stacktrace_, Me.library_, Me.classname_, Me.method_, Me.linenum_)
-		Return me.stackTrace_
-		'}}
-
-	End Property
-
-
-	%REM
-		Property timeStamp 
-		Timestamp of when the object instance was created. This is date/time in yyyy-MM-dd hh:mm:ss format in the current platform's timezone.
-	
-		@return	String
-	%END REM
-	Public Property Get timeStamp As String 
-		'{{SETI_AUTHOR_CODE_Get.timeStamp_implementation
-		Return Me.timestamp_
-		'}}
-
-	End Property
-
-
-	%REM
-		Property uuID 
-		Unique identifier for the instance
-	
-		@return	String
-	%END REM
-	Public Property Get uuID As String 
-		'{{SETI_AUTHOR_CODE_Get.uuID_implementation
-			return Me.uuid_ 
-		'}}
-
-	End Property
-
 
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Properties
 	'}}
 
 
 	%REM
-		Function getPropertyValue 
-		Retrieves a property value for a specified property name
+		Sub printSummary 
+		Outputs a summary of the properties of the LogEntry to console. Only relevant for basic debugging.
 	
-		@param	propertyName 	Name of the property to be retrieved
-
-		@return	Variant
-		@throws	A passed parameter is invalid. 	property name invalid
-
 	%END REM
-	Public Function getPropertyValue(propertyName As String) As Variant 
-	'{{SETI_AUTHOR_CODE_getPropertyValue_implementation
+	Public Sub printSummary() 
+		'{{SETI_AUTHOR_CODE_printSummary_implementation
 
-	Select Case propertyName
-		Case "STACKTRACE":
-			Return Me.stackTrace
-		Case "LEVELNAME":
-			Return Me.levelName
-		Case "ENTRYID":
-			Return Me.entryID
-		Case "LEVEL":
-			Return Me.level
-		Case "MESSAGE":
-			Return Me.message
-		Case "CLASSNAME":
-			Return Me.className
-		Case "LINENUM":
-			Return Me.lineNum
-		Case "LIBRARYNAME":
-			Return Me.libraryName
-		Case "METHODNAME":
-			Return Me.methodName
-		Case "TIMESTAMP":
-			Return Me.timestamp
-		Case "EXTINFO"
-			Return Me.extInfo
-		Case Else
-			Error ERR_PARAMETER_INVALID, MSG_PARAMETER_INVALID & |propertyName: | & propertyName
-	End Select
-	'}}
+		Dim stackinfo as Variant 
+		Dim i as Integer 
 
-	End Function
+		Print |LogEntry.level : | & cstr(Me.level) 
+		Print |LogEntry.levelName : | & Me.levelName
+		Print |LogEntry.extInfo : | & Me.extInfo 
+		Print |LogEntry.entryID: | & Me.entryID 
+		Print |LogEntry.timestamp : | & Me.timestamp 
+		Print |LogEntry.libraryName : | & Me.libraryName 
+		Print |LogEntry.className : | & Me.className
+		Print |LogEntry.methodName : | & Me.methodName 
+		Print |LogEntry.linenum : | & cstr(Me.linenum)
+		Print |LogEntry.calleeLinenum : | & cstr(Me.calleeLinenum)
+		Print |LogEntry.message : | & Me.message 
+		Print |LogEntry.StackTrace: |
+		stackinfo = Fulltrim(Split(Me.stackTrace, LF))
+		For i = 0 to Ubound(stackinfo) 
+			Print HT & stackinfo(i)
+		Next 
+
+		Print || 
+		'}}
+
+	End Sub
+
 
 	%REM
 		Sub New 
@@ -1001,7 +1110,7 @@ Public Class LogEntry
 
 		Me.stacktrace_ = getThreadInfo(12) 
 
-		' Call me.printSummary() 		
+		Call setLibClassMethLine()		
 
 		'}}
 
@@ -1009,44 +1118,138 @@ Public Class LogEntry
 
 
 	%REM
-		Sub printSummary 
-		Outputs a summary of the properties of the LogEntry to console. Only relevant for basic debugging.
+		Function getPropertyValue 
+		Retrieves a property value for a specified property name
 	
+		@param	propertyName 	Name of the property to be retrieved
+
+		@return	Variant
+		@throws	A passed parameter is invalid. 	property name invalid
+
 	%END REM
-	Public Sub printSummary() 
-		'{{SETI_AUTHOR_CODE_printSummary_implementation
+	Public Function getPropertyValue(propertyName As String) As Variant 
+	'{{SETI_AUTHOR_CODE_getPropertyValue_implementation
+	Dim temp as Variant
 
-		Dim stackinfo as Variant 
-		Dim class_name As String 
-		Dim i as Integer 
+	Select Case propertyName
+		Case "STACKTRACE":
+			Return Me.stackTrace
+		Case "STACKTRACE_COMPACT":
+			temp = Split(Me.stackTrace, LF)
+			Return Join(temp, ";")
+		Case "LEVELNAME":
+			Return Me.levelName
+		Case "ENTRYID":
+			Return Me.entryID
+		Case "LEVEL":
+			Return Me.level
+		Case "MESSAGE":
+			Return Me.message
+		Case "CLASSNAME":
+			Return Me.className
+		Case "LINENUM":
+			Return Me.lineNum
+		Case "CALLEELINENUM":
+			Return Me.calleeLinenum
+		Case "LIBRARYNAME":
+			Return Me.libraryName
+		Case "METHODNAME":
+			Return Me.methodName
+		Case "TIMESTAMP":
+			Return Me.timestamp
+		Case "EXTINFO"
+			Return Me.extInfo
+		Case Else
+			Error ERR_PARAMETER_INVALID, MSG_PARAMETER_INVALID & |propertyName: | & propertyName
+	End Select
+	'}}
 
-		stackinfo = Split(FullTrim(getThreadInfo(12)), LF)
-		stackinfo = Split(stackinfo(0), |,|) 
-		If Ubound(stackinfo) > 2 Then class_name = stackinfo(1)
-
-		Print class_name & |.level : | & cstr(Me.level) 
-		Print class_name & |.levelName : | & Me.levelName
-		Print class_name & |.extInfo : | & Me.extInfo 
-		Print class_name & |.entryID: | & Me.entryID 
-		Print class_name & |.timestamp : | & Me.timestamp 
-		Print class_name & |.libraryName : | & Me.libraryName 
-		Print class_name & |.className : | & Me.className
-		Print class_name & |.methodName : | & Me.methodName 
-		Print class_name & |.linenum : | & cstr(Me.linenum)
-		Print class_name & |.message : | & Me.message 
-		Print class_name & |.StackTrace: |
-		stackinfo = Fulltrim(Split(Me.stackTrace, LF))
-		For i = 0 to Ubound(stackinfo) 
-			Print HT & stackinfo(i)
-		Next 
-
-		Print || 
-		'}}
-
-	End Sub
-
+	End Function
 
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Methods
+	Private Sub setLibClassMethLine()
+		Dim stackcontent as Variant 
+		Dim i as Integer 
+
+		Dim lines As Variant 
+		Dim firstLine as Variant
+		Dim elements As Variant 
+
+		Dim lineentry As String 
+		Dim libclassmeth As String
+
+		Dim idx as Integer 
+		Dim result as Integer 
+
+		Dim isEA3 As Boolean 
+
+		' BEGIN CODE 
+		lines = split(Me.stacktrace_, LF) 
+		firstLine = split(lines(0), ",")
+
+		If (UBound(firstLine) < 2) Then 
+			Return
+		Else
+			isEA3 = True 
+		End If
+
+		For idx = 0 to Ubound(lines) 
+			lineentry = Trim$(cstr(lines(idx)))		
+			libclassmeth = Trim$(strLeftBack(lineentry, |,|))
+			elements = Split(Trim(lineentry), |,|)
+			If (UBound(elements) < 2) Then Exit For
+
+			Select Case libclassmeth 
+				Case |VOLTSCRIPTLOGGING,NEW|, _ 
+					|VOLTSCRIPTLOGGING,CREATELOGENTRY|, _ 
+					|VOLTSCRIPTLOGGING,NEW|, _ 
+					|VOLTSCRIPTLOGGING,CREATEERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTRY|
+
+					lines(idx) = ""
+
+				Case |VOLTSCRIPTLOGGING,LOGENTRY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,LOGSESSION,CREATELOGENTRY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORENTRY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATEERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATECUSTOMERRORENTRY|
+
+					lines(idx) = ""
+
+				Case Else 
+
+					If isEA3 Then 
+						Me.libraryname_ = elements(0)
+						Me.methodname_ = elements(1) 
+						Me.linenum_ = cint(elements(2))
+
+					Else 
+						Me.libraryname_ = elements(0)
+						Me.classname_ = elements(1) 
+						Me.methodname_ = elements(2) 
+						Me.linenum_ = cint(elements(3))
+					End If 
+
+					If (UBound(lines) > idx) Then
+						elements = Split(Trim(lines(idx + 1)), |,|)
+						If (isEA3) Then
+                            If UBound(elements) > 1 Then Me.calleeLineNum_ = cint(elements(2))
+                        Else
+                            If UBound(elements) > 2 Then Me.calleeLineNum_ = cint(elements(3))
+                        End If
+					End If
+
+					Exit For 
+			End Select 
+		Next 
+
+		Me.stacktrace_ = Join(FullTrim(lines), LF)
+	End Sub 
+
+	Private Function isValidLevel(levelNum as Integer, includeNoLogging as Boolean) as Boolean
+		If (includeNoLogging && levelNum = NO_LOGGING) Then Return True
+		Return (levelNum = LOG_FATAL) || (levelNum = LOG_ERROR) || (levelNum = LOG_WARN) || (levelNum = LOG_INFO) || (levelNum = LOG_DEBUG) || (levelNum = LOG_TRACE)
+	End Function
 	'}} 
 
 End Class 
@@ -1072,14 +1275,42 @@ Public Class LogSession
 
 
 	%REM
+		Property sessionID 
+		unique ID/key for this logging session
+	
+		@return	String
+	%END REM
+	Public Property Get sessionID As String 
+		'{{SETI_AUTHOR_CODE_Get.sessionID_implementation
+		return Me.sessionid_
+		'}}
+
+	End Property
+
+
+	%REM
 		Property entryCount 
-		Number of LogEntries contained by the LogSession
+		Number of LogEntry instances contained by the LogSession
 	
 		@return	Integer
 	%END REM
 	Public Property Get entryCount As Integer 
 		'{{SETI_AUTHOR_CODE_Get.entryCount_implementation
 		If Not Me.isEmpty Then Return Ubound(Me.content_) + 1
+		'}}
+
+	End Property
+
+
+	%REM
+		Property lastEntry 
+		The last LogEntry that has been added to the object.  Nothing if no LogEntry instances have been added.
+	
+		@return	LogEntry
+	%END REM
+	Public Property Get lastEntry As LogEntry 
+		'{{SETI_AUTHOR_CODE_Get.lastEntry_implementation
+		If Not Me.isEmpty Then Return Me.content_(Ubound(Me.content_))
 		'}}
 
 	End Property
@@ -1110,35 +1341,6 @@ Public Class LogSession
 
 	End Property
 
-
-	%REM
-		Property lastEntry 
-		The most recently created LogEntry instance carried by the object. 
-	
-		@return	LogEntry
-	%END REM
-	Public Property Get lastEntry As LogEntry 
-		'{{SETI_AUTHOR_CODE_Get.lastEntry_implementation
-		If Not Me.isEmpty Then Return Me.content_(Ubound(Me.content_))
-		'}}
-
-	End Property
-
-
-	%REM
-		Property sessionID 
-		unique ID/key for this logging session
-	
-		@return	String
-	%END REM
-	Public Property Get sessionID As String 
-		'{{SETI_AUTHOR_CODE_Get.sessionID_implementation
-		return Me.sessionid_
-		'}}
-
-	End Property
-
-
 	'{{SETI_AUTHOR_CODE_LogSession_Private_Properties
 	%REM
 		Property isEmpty 
@@ -1150,49 +1352,6 @@ Public Class LogSession
 		Return isEmpty(Me.content_)
 	End Property
 	'}}
-
-
-	%REM
-		Sub addLogWriter 
-		Adds a log writer to the LogSession. 
-	
-		@param	logWriter 	Instance of BaseLogWriter (or derived class) to be added to the LogSession
-
-	%END REM
-	Public Sub addLogWriter(logWriter As BaseLogWriter) 
-		'{{SETI_AUTHOR_CODE_addLogWriter_implementation
-		Set Me.logWriters(logWriter.label) = logWriter
-		'}}
-
-	End Sub
-
-
-	%REM
-		Function createLogEntry 
-		Creates a new LogEntry object. 
-	
-		@param	levelNum 	the Logging Level of the entry; you can use the constant as well
-
-		@param	message 	the text message of the entry
-
-		@param	extInfo 	Any extended information to include with the entry or blank
-
-		@return	LogEntry
-	%END REM
-	Public Function createLogEntry(levelNum As Integer, message As String, extInfo As String) As LogEntry 
-		'{{SETI_AUTHOR_CODE_createLogEntry_implementation
-		If Me.isEmpty Then
-			Redim Me.content_(0) As LogEntry
-		Else
-			Redim Preserve Me.content_(Ubound(Me.content_) + 1) As LogEntry
-		End If
-
-		Set Me.content_(Ubound(Me.content_)) = New LogEntry(levelNum, message, extInfo) 
-		Return Me.lastEntry
-
-		'}}
-
-	End Function
 
 
 	%REM
@@ -1210,6 +1369,95 @@ Public Class LogSession
 		'}}
 
 	End Sub
+
+
+	%REM
+		Sub reset 
+		Resets the LogSession.  Deletes all internal LogEntry instances, erases all internal LogWriter instances, and generates a new session id. 
+	
+	%END REM
+	Public Sub reset() 
+		'{{SETI_AUTHOR_CODE_reset_implementation
+		Me.content_ = NullValue
+		Erase Me.LogWriters
+		Me.index_ = 0
+		Me.sessionid_ = getThreadInfo(11) & "_" & CreateUUID()
+		'}}
+
+	End Sub
+
+
+	%REM
+		Sub addLogWriter 
+		Adds a log writer to the object. 
+	
+		@param	logWriter 	Instance of BaseLogWriter or derived class
+
+	%END REM
+	Public Sub addLogWriter(logWriter As BaseLogWriter) 
+		'{{SETI_AUTHOR_CODE_addLogWriter_implementation
+		Set Me.logWriters(logWriter.label) = logWriter
+		'}}
+
+	End Sub
+
+
+	%REM
+		Sub removeLogWriter 
+		Removes a LogWriter instance from the LogSession's LogWriters.   
+	
+		@param	logWriter 	Instance of BaseLogWriter (or derived class) to be removed from the LogSession
+
+	%END REM
+	Public Sub removeLogWriter(logWriter As BaseLogWriter) 
+		'{{SETI_AUTHOR_CODE_addLogWriter_implementation
+		If logWriter is Nothing Then Return 
+		If isElement(Me.logWriters(logWriter.label)) Then Erase Me.logWriters(logWriter.label)
+
+		'}}
+		'{{SETI_AUTHOR_CODE_removeLogWriter_implementation
+		'}}
+
+	End Sub
+
+
+	%REM
+		Sub New 
+		Constructor. Can only be used from getLogSession(). Do not use this constructor, use getLogSession() instead.
+	
+		@throws	Operation Prohibited 	Use getLogSession() to create a new LogSession object
+
+	%END REM
+	Public Sub New() 
+		'{{SETI_AUTHOR_CODE_New_implementation
+		If Not fromHere Then Error ERR_OPERATION_PROHIBITED, MSG_OPERATION_PROHIBITED & |Use globalLogSession to get the LogSession object.  |
+		Me.sessionid_ = CreateUUID()
+		'}}	
+
+	End Sub
+
+
+	%REM
+		Function getLogEntryByID 
+		Retrieves the LogEntry with a specified ID.  Nothing if not found. 
+	
+		@param	entryID 	the entryID of the desired log entry
+
+		@return	LogEntry
+	%END REM
+	Public Function getLogEntryByID(entryID As String) As LogEntry 
+		'{{SETI_AUTHOR_CODE_getLogEntryByID_implementation
+		Dim result as LogEntry
+
+		If ("" != entryID) && Not Me.isEmpty Then
+			Forall element in Me.content_ 
+				Set result = element 
+				If (result.entryID = entryID) Then Return result
+			End Forall
+		End If
+		'}}
+
+	End Function
 
 
 	%REM
@@ -1250,85 +1498,57 @@ Public Class LogSession
 
 
 	%REM
-		Function getLogEntryByID 
-		Retrieves the LogEntry with a specified ID.  Nothing if not found. 
+		Function createLogEntry 
+		Creates a new LogEntry object. 
 	
-		@param	entryID 	the entryID of the desired log entry
+		@param	levelNum 	the Logging Level of the entry; you can use the constant as well
+
+		@param	message 	the text message of the entry
+
+		@param	extInfo 	Any extended information to include with the entry or blank
 
 		@return	LogEntry
 	%END REM
-	Public Function getLogEntryByID(entryID As String) As LogEntry 
-		'{{SETI_AUTHOR_CODE_getLogEntryByID_implementation
-		Dim result as LogEntry
+	Public Function createLogEntry(levelNum As Integer, message As String, extInfo As String) As LogEntry 
+		'{{SETI_AUTHOR_CODE_createLogEntry_implementation
+		Dim temp as LogEntry
+		Set temp = New LogEntry(levelNum, message, extInfo)
+		If temp is Nothing Then Print "LogEntry could not be created for " & message
 
-		If ("" != entryID) && Not Me.isEmpty Then
-			Forall element in Me.content_ 
-				Set result = element 
-				If (result.entryID = entryID) Then Return result
-			End Forall
+		If Me.isEmpty Then
+			Redim Me.content_(0) As LogEntry
+		Else
+			Redim Preserve Me.content_(Ubound(Me.content_) + 1) As LogEntry
 		End If
+
+		Set Me.content_(Ubound(Me.content_)) = temp
+		Return temp
+
 		'}}
 
 	End Function
-
-
-	%REM
-		Sub New 
-		Constructor. Can only be used from getLogSession(). Do not use this constructor, use getLogSession() instead.
-	
-		@throws	Operation Prohibited 	Use getLogSession() to create a new LogSession object
-
-	%END REM
-	Public Sub New() 
-		'{{SETI_AUTHOR_CODE_New_implementation
-		If Not fromHere Then Error ERR_OPERATION_PROHIBITED, MSG_OPERATION_PROHIBITED & |Use globalLogSession to get the LogSession object.  |
-		Me.sessionid_ = CreateUUID()
-		'}}	
-
-	End Sub
-
-
-	%REM
-		Sub removeLogWriter 
-		Removes a log writer from the LogSession. 
-	
-		@param	logWriter 	Instance of BaseLogWriter (or derived class) to be removed from the LogSession
-
-	%END REM
-	Public Sub removeLogWriter(logWriter As BaseLogWriter)
-		'{{SETI_AUTHOR_CODE_addLogWriter_implementation
-		If logWriter is Nothing Then Return 
-		If isElement(Me.logWriters(logWriter.label)) Then Erase Me.logWriters(logWriter.label)
-
-		'}}
-
-	End Sub 
-
-
-	%REM
-		Sub reset 
-		Deletes the LogSession without writing out entries
-	
-	%END REM
-	Public Sub reset() 
-		'{{SETI_AUTHOR_CODE_reset_implementation
-		Me.content_ = NullValue
-		Erase Me.LogWriters
-		Me.index_ = 0
-		Me.sessionid_ = getThreadInfo(11) & "_" & CreateUUID()
-		'}}
-
-	End Sub
-
 
 	'{{SETI_AUTHOR_CODE_LogSession_Private_Methods
 	'}} 
 
 End Class 
-
-
 '{{SETI_AUTHOR_CODE_VoltscriptLogging_Private_Classes 
 '}}
+
+
+%REM
+	Sub Initialize 
+	Instantiates the Global Log Session. 
+	
+%END REM
+Sub Initialize() 
+	'{{SETI_AUTHOR_CODE_Initialize_implementation
+	fromHere = True
+	Set globalLogSession = New LogSession()
+	fromHere = False
+	'}}
+
+End Sub
 
 
 %REM
@@ -1350,113 +1570,5 @@ Public Function getErrorSession() As ErrorSession
 
 End Function
 
-
-%REM
-	Function getLogEntryPropertyNames 
-	Gets the Property Names of the LogEntry Class
-	
-	@return	Variant
-%END REM
-Static Public Function getLogEntryPropertyNames() As Variant 
-	'{{SETI_AUTHOR_CODE_getLogEntryPropertyNames_implementation
-	Static props(10) as String
-
-	If (props(0) = "") Then
-		props(0) = "STACKTRACE"
-		props(1) = "LEVELNAME"
-		props(2) = "ENTRYID"
-		props(3) = "LEVEL"
-		props(4) = "MESSAGE"
-		props(5) = "CLASSNAME"
-		props(6) = "LINENUM"
-		props(7) = "LIBRARYNAME"
-		props(8) = "METHODNAME"
-		props(9) = "TIMESTAMP"
-		props(10) = "EXTINFO"
-	End If
-
-	Return props
-	'}}
-
-End Function
-
-
-Sub Initialize
-	fromHere = True
-	Set globalLogSession = New LogSession()
-	fromHere = False
-End Sub
-
-
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Methods
-Private Function isValidLevel(levelNum as Integer, includeNoLogging as Boolean) as Boolean
-	If (includeNoLogging && levelNum = NO_LOGGING) Then Return True
-	Return (levelNum = LOG_FATAL) || (levelNum = LOG_ERROR) || (levelNum = LOG_WARN) || (levelNum = LOG_INFO) || (levelNum = LOG_DEBUG) || (levelNum = LOG_TRACE)
-End Function
-
-
-Private Function getLibClassMethLine(stacktrace As String, libraryname As String, classname as String, methodname As String, linenum As Integer) As Boolean 
-		Dim stackcontent as Variant 
-		Dim i as Integer 
-
-		Dim lines As Variant 
-		Dim elements As Variant 
-
-		Dim lineentry As String 
-		Dim libclassmeth As String
-
-		Dim idx as Integer 
-		Dim result as Integer 
-
-		Dim isEA3 As Boolean 
-
-		' BEGIN CODE 
-		lines = FullTrim(split(stacktrace, LF)) 
-		
-		For idx = 0 to Ubound(lines) 
-			lineentry = Trim$(cstr(lines(idx)))		
-			libclassmeth = Trim$(strLeftBack(lineentry, |,|))
-
-			Select Case libclassmeth 
-				Case |VOLTSCRIPTLOGGING,NEW|, _ 
-					|VOLTSCRIPTLOGGING,CREATELOGENTRY|, _ 
-					|VOLTSCRIPTLOGGING,NEW|, _ 
-					|VOLTSCRIPTLOGGING,CREATEERRORENTITY|, _ 
-					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTITY|
-
-					lines(idx) = ""
-					isEA3 = True 
-
-				Case |VOLTSCRIPTLOGGING,LOGENTRY,NEW|, _ 
-					|VOLTSCRIPTLOGGING,LOGSESSION,CREATELOGENTRY|, _ 
-					|VOLTSCRIPTLOGGING,ERRORENTITY,NEW|, _ 
-					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATEERRORENTITY|, _ 
-					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATECUSTOMERRORENTITY|
-
-					lines(idx) = ""
-
-				Case Else 
-
-					elements = Split(Trim(lineentry), |,|)
-				
-					If isEA3 Then 
-						libraryname = elements(0)
-						methodname = elements(1) 
-						linenum = cint(elements(2))
-
-					Else 
-						libraryname = elements(0)
-						classname = elements(1) 
-						methodname = elements(2) 
-						linenum = cint(elements(3))
-					End If 
-
-					Exit For 
-			End Select 
-		Next 
-
-		stacktrace = Join(FullTrim(lines), LF)
-
-		Return true 
-End Function 
 '}} 
