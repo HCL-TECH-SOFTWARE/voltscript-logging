@@ -12,4 +12,5 @@ core
 /unit-test-reports/*
 *_UNMERGED.vss
 *launch.json
-*/logs/*
+/logs/*
+/.vscode/*

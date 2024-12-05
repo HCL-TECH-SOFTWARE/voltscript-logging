@@ -2,12 +2,14 @@
 
 LogWriters are designed to write logs to different locations. The LogWriter takes in four arguments:
 
-- **label**: a unique label which will be the key in the Map of LogWriters.
-- **minLevel**: a minimum level of a LogEntry to log.
-- **maxLevel**: a maximum level of a LogEntry to log.
+- **label**:     a unique label which will be the key in the Map of LogWriters.
+- **minLevel**:  a minimum level of a LogEntry to log.
+- **maxLevel**:  a maximum level of a LogEntry to log.
 - **formatter**: a string formatter to produce the message to log.
 
-Logs will be outputted if they are at or above the minimum level and at or below the maximum level. For example, if the minimum level is LOG_TRACE and maximum level is LOG_INFO, logs with LOG_TRACE, LOG_DEBUG, and LOG_INFO will be written out. But logs with LOG_WARNING, LOG_ERROR, and LOG_FATAL will not be included.
+Logs will be outputted if they are at or above the minimum level and at or below the maximum level. 
+
+For example, if the *minimum* level is LOG_TRACE and *maximum* level is LOG_INFO then logs with LOG_TRACE, LOG_DEBUG, and LOG_INFO will be written out, but logs with LOG_WARNING, LOG_ERROR, and LOG_FATAL will be ignored.
 
 A special level is also available for `maxLevel` in LogWriters - NO_LOGGING. If the max level is NO_LOGGING, no logs will be processed and nothing written.
 
@@ -35,19 +37,23 @@ The maximum level can only be set in the constructor. If you have to change it a
 
 The formatter uses mustache syntax (`{{variable_name}}`) to replace content in the format. The following variables can be used:
 
-| Variable    | Explanation                                                |
-|-------------|------------------------------------------------------------|
-| STACKTRACE  | The stack trace from the LogEntry                          |
-| LEVELNAME   | The name of the log level, e.g. FATAL                      |
-| ENTRYID     | The ID of the LogEntry                                     |
-| LEVEL       | The numeric value of the log level, e.g. 32                |
-| MESSAGE     | The log message                                            |
-| CLASSNAME   | The name of the class passed into the LogEntry             |
-| LINENUM     | The line number passed into the LogEntry                   |
-| LIBRARYNAME | The name of the library or module where the LogEntry was generated |
-| METHODNAME  | The name of the method or function where the LogEntry was generated |
-| TIMESTAMP   | The timestamp of the log entry                              |
-| EXTINFO     | Additional extended information passed into the log entry   |
+| Variable           | Explanation                                                            |
+|--------------------|------------------------------------------------------------------------|
+| STACKTRACE         | The stack trace from the LogEntry                                      |
+| STACKTRACE_COMPACT | The stack trace compacted with line feeds replaced by semi-colons      |
+| LEVELNAME          | The name of the log level, e.g. FATAL                                  |
+| ENTRYID            | The ID of the LogEntry                                                 |
+| LEVEL              | The numeric value of the log level, e.g. 32                            |
+| MESSAGE            | The log message                                                        |
+| CLASSNAME          | The name of the class passed into the LogEntry                         |
+| LINENUM            | The line number passed into the LogEntry                               |
+| CALLEELINENUM      | Calling code ine number triggering the creation of a LogEntry instance |
+| LIBRARYNAME        | The name of the library or module where the LogEntry was generated     |
+| METHODNAME         | The name of the method or function where the LogEntry was generated    |
+| TIMESTAMP          | The timestamp of the log entry                                         |
+| EXTINFO            | Additional extended information passed into the log entry              |
+
+
 
 !!! warning
     Variables are case-sensitive and **must** be entered in upper case in the formatter.

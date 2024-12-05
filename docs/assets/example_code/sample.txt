@@ -20,19 +20,19 @@ End Sub
 Function doProcessing(passedVal as Integer) as Boolean
 
     Print |doProcessing(| & passedVal & |)|
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered doProcessing", "", "")
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered doProcessing", "")
     Try
         If (passedVal > 4) Then Error 4000, "Invalid entry"
 
-        Call globalLogSession.createLogEntry(LOG_DEBUG, "Ran doProcessing successfully", "", "")
+        Call globalLogSession.createLogEntry(LOG_DEBUG, "Ran doProcessing successfully", "")
     Catch
         If (passedVal > 6) Then 
-            Call globalLogSession.createLogEntry(LOG_FATAL, "Error encountered", "Value passed: " & passedVal, "")
+            Call globalLogSession.createLogEntry(LOG_FATAL, "Error encountered", "Value passed: " & passedVal)
         Else 
-            Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Value passed: " & passedVal, "")
+            Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Value passed: " & passedVal)
         End If 
     Finally
-        Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished doProcessing", "", "")
+        Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished doProcessing", "")
     End Try
 
 End Function

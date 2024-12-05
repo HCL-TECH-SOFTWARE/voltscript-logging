@@ -2,15 +2,16 @@
 
 ## Get LogSession
 
-The LogSession instance is a singleton, the global variable `globalLogSession`, instantiated in the script's `Initialize`. Always use this method to retrieve the current LogSession, trying to do `Dim logSess as New LogSession()` will throw an error.
+The LogSession instance is a singleton, accessed by the global variable `globalLogSession`.  It is instantiated in the script's `Initialize` method.  **Always** use `globalLogSession` to access the LogSession instance.  Attempting to create a new LogSession using the `New()` constructor will throw an error.
 
 !!! info
     VoltScript objects cannot persist between script runs. So when the `Sub Initialize` is first triggered, the LogSession instance will be new and empty. When the `Sub Initialize` ends, the LogSession instance will be deleted.
 
+
 ## Create log entries
 
 !!! tip
-    Recommended best practice is to always create log entries of all levels, not to change code when you want to log or use conditionals to check whether or not to create a log entry. Instead, use conditionals when adding the LogWriters to the LogSession or setting the LogWriter level. This ensures cleaner code and simplicity for the flexible requirement of changing logging levels.
+    The recommended best practice is to always create log entries of all levels, not to change code when you want to log or use conditionals to check whether or not to create a log entry. Instead, use conditionals when adding the LogWriters to the LogSession or setting the LogWriter level. This ensures cleaner code and simplicity for the flexible requirement of changing logging levels.
 
 The following snippet shows an example of creating log entries:
 
@@ -18,19 +19,19 @@ The following snippet shows an example of creating log entries:
 Function doProcessing(passedVal as Integer) as Boolean
 
     Print |doProcessing(| & passedVal & |)|
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered doProcessing", "", "")
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered doProcessing", "")
     Try
         If (passedVal > 4) Then Error 4000, "Invalid entry"
 
-        Call globalLogSession.createLogEntry(LOG_DEBUG, "Ran doProcessing successfully", "", "")
+        Call globalLogSession.createLogEntry(LOG_DEBUG, "Ran doProcessing successfully", "")
     Catch
         If (passedVal > 6) Then 
-            Call globalLogSession.createLogEntry(LOG_FATAL, "Error encountered", "Value passed: " & passedVal, "")
+            Call globalLogSession.createLogEntry(LOG_FATAL, "Error encountered", "Value passed: " & passedVal)
         Else 
-            Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Value passed: " & passedVal, "")
+            Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Value passed: " & passedVal)
         End If 
     Finally
-        Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished doProcessing", "", "")
+        Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished doProcessing", "")
     End Try
 
 End Function

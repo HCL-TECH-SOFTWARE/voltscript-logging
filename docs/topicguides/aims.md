@@ -20,7 +20,7 @@ A sample scenario would be a LogSession with two LogWriters:
 - LogWriter1 writing LOG_FATAL or LOG_ERROR logs to a file called "errors.log".
 - LogWriter2 writing LOG_DEBUG and LOG_TRACE to a file called "debug.log" if an environment variable is set.
 
-## ErrorSession and ErrorEntity
+## ErrorSession and ErrorEntry
 
 At this time no changes are being made to error handling in the core language. The same functions from LotusScript are available, with one addition:
 
@@ -29,6 +29,6 @@ At this time no changes are being made to error handling in the core language. T
 - **Erl()** gives the line the Error was triggered on.
 - **getThreadInfo(12)** is an addition to VoltScript and gives a safe-to-use stack trace.
 
-The aims of the framework are to make it as easy as possible to track errors. Thus `getErrorSession().createErrorEntity()` creates an ErrorEntity object and adds it to the session. See the [Error tracking how-to](../howto/errortracking.md) for more details.
+The aims of the framework are to make it as easy as possible to track errors. Thus `getErrorSession().createErrorEntry()` creates an ErrorEntry object and adds it to the session. See the [Error tracking how-to](../howto/errortracking.md) for more details.
 
-Again, error logging is separated from error tracking. Some errors may be handled differently from others - some may required immediate end of processing, others may be handled within the code. So ErrorEntity instances are not automatically added to the LogSession, you add them if required and with the relevant log level.
+Again, error logging is separated from error tracking. Some errors may be handled differently from others - some may required immediate end of processing, others may be handled within the code. So ErrorEntry instances are not automatically added to the LogSession, you add them if required and with the relevant log level.

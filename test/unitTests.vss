@@ -64,7 +64,7 @@ Class BaseErrorTester
         Try 
             Error errCode, errMsg ' BaseErrorTesterLine
         Catch 
-            Call getErrorSession().createErrorEntity(LOG_ERROR)
+            Call getErrorSession().createErrorEntry(LOG_ERROR)
         End Try 
     End Sub 
 
@@ -97,7 +97,7 @@ Class ChildErrorTester As BaseErrorTester
             End If 
 
         Catch 
-            Call getErrorSession().createErrorEntity(LOG_ERROR)
+            Call getErrorSession().createErrorEntry(LOG_ERROR)
         End Try 
 
     End Sub 
@@ -162,7 +162,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Dim testSuite as New TestSuite("Error Tests")
     Call testRunner.addTestSuite(testSuite)
 
-    Dim errObj as ErrorEntity 
+    Dim errObj as ErrorEntry 
     Dim errors as Variant 
     Dim tempint as Integer 
 
@@ -171,7 +171,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Try
         Error 1000, "Test Error"  ' errLine
     Catch
-        Set errObj = getErrorSession().createErrorEntity(LOG_ERROR)
+        Set errObj = getErrorSession().createErrorEntry(LOG_ERROR)
     End Try
 
     errors = getErrorSession().errors() 
@@ -189,7 +189,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Try
         Error 1000, "Test Error"
     Catch
-        Set errObj = getErrorSession().createErrorEntity(LOG_ERROR)
+        Set errObj = getErrorSession().createErrorEntry(LOG_ERROR)
     End Try
 
 
@@ -198,7 +198,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Try 
         Error 1000, "Test error with NO_LOGGING"
     Catch 
-        Call getErrorSession().createErrorEntity(NO_LOGGING)
+        Call getErrorSession().createErrorEntry(NO_LOGGING)
         Call testSuite.addResult(True, "")
     End Try 
     Call testSuite.describe("globalLogSession.entryCount is " & tempint).assertEqualsInteger(tempint, globalLogSession.entryCount)
@@ -208,7 +208,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Try 
         Error 1000, "Test error with LOG_ERROR"
     Catch 
-        Call getErrorSession().createErrorEntity(LOG_ERROR)
+        Call getErrorSession().createErrorEntry(LOG_ERROR)
         Call testSuite.addResult(True, "")
     End Try 
     Call testSuite.describe("globalLogSession.entryCount is " & tempint).assertEqualsInteger(tempint, globalLogSession.entryCount)
@@ -219,7 +219,7 @@ Function testErrors(testRunner as TestRunner) as Boolean
     Try 
         Error 1000, "Test Create Custom Error Entity"
     Catch 
-        Call getErrorSession().createCustomErrorEntity("this is a custom error message", 1352, 2525, LOG_DEBUG)
+        Call getErrorSession().createCustomErrorEntry("this is a custom error message", 1352, 2525, LOG_DEBUG)
         Call testSuite.addResult(True, "")
     End Try
     errors = getErrorSession().errors 
@@ -248,12 +248,12 @@ Function testClassHierarchyErrors(testRunner as TestRunner) as Boolean
 
     Dim baseTester as BaseErrorTester
     Dim childTester as ChildErrorTester 
-    Dim ee as ErrorEntity 
+    Dim ee as ErrorEntry 
 
     Dim testSuite as New TestSuite("Class Hierarchy Error Tests")
     Call testRunner.addTestSuite(testSuite)
 
-    Dim errObj as ErrorEntity 
+    Dim errObj as ErrorEntry 
     Dim errors as Variant 
     Dim tempint as Integer 
 
@@ -470,13 +470,17 @@ Function logFunctionTests(testRunner as TestRunner) as Boolean
     Dim logFunctionSuite as New TestSuite("Log Function Tests")
     Call testRunner.addTestSuite(logFunctionSuite)
 
+    %REM This test removed because getLogEntryPropertyNames() method is no longer a global public method.
     Call logFunctionSuite.describe("Test LogEntry Property Names elements").assertEqualsLong(10, UBound(getLogEntryPropertyNames()))
-    
+    %END REM 
+
     Dim i as Integer
     Dim prop as String
     Dim logEntry as LogEntry
 
     Set logEntry = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information")
+
+    %REM This test removed because getLogEntryPropertyNames() method is no longer a global public method.
     For i = 0 To UBound(getLogEntryPropertyNames())
         prop = getLogEntryPropertyNames()(i)
         Select Case prop 
@@ -487,7 +491,8 @@ Function logFunctionTests(testRunner as TestRunner) as Boolean
                 Call logFunctionSuite.describe("Test property " & prop & " is not empty").assertNotEqualString("", CStr(logEntry.getPropertyValue(prop)))
         End Select 
     Next
-    
+    %END REM 
+
     Try
         Call logFunctionSuite.describe("Test getPropertyValue throws error with bad property")
         Call logEntry.getPropertyValue("BADPROPERTY")

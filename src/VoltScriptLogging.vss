@@ -27,13 +27,13 @@ Option Public
 
 
 '{{Constants
-Public Const LOG_FATAL = 32 	 ' Highest logging level.
-Public Const LOG_TRACE = 1 	 ' Lowest logging level, for most verbose logging.
-Public Const LOG_INFO = 4 	 ' Fourth-highest logging level, for informational messages.
-Public Const NO_LOGGING = 0 	 ' Only used in LogWriters, to prevent logging any log entries.
-Public Const LOG_ERROR = 16 	 ' Second-highest logging level, for errors that are not fatal to continuing process.
-Public Const LOG_DEBUG = 2 	 ' Fifth-highest logging level, for more extensive messages than most support requires.
-Public Const LOG_WARN = 8 	 ' Third-highest logging level, for log entries that are not errors but should be addressed.
+Public Const NO_LOGGING = 0 	' Only used in LogWriters, to prevent logging any log entries.
+Public Const LOG_TRACE = 1 		' Lowest logging level, for most verbose logging.
+Public Const LOG_DEBUG = 2 		' Fifth-highest logging level, for more extensive messages than most support requires.
+Public Const LOG_INFO = 4 		' Fourth-highest logging level, for informational messages.
+Public Const LOG_WARN = 8 		' Third-highest logging level, for log entries that are not errors but should be addressed.
+Public Const LOG_ERROR = 16 	' Second-highest logging level, for errors that are not fatal to continuing process.
+Public Const LOG_FATAL = 32 	' Highest logging level.
 '}}
 
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Constants
@@ -546,7 +546,6 @@ Public Class ErrorEntry
 	%END REM
 	Public Sub New(message As String, code As Integer, lineNum As Integer, levelNum As Integer) 
 		'{{SETI_AUTHOR_CODE_New_implementation
-
 		If (|| = Trim(message)) Then Me.message_ = Error$() Else Me.message_ = Message 
 		If (code < 1) Then Me.code_ = Err() Else Me.code_ = code 
 		If (lineNum < 1) Then Me.linenum_  = Erl() Else Me.linenum_ = lineNum 
@@ -562,6 +561,7 @@ Public Class ErrorEntry
 		End If 
 
 		Call Me.setLibClassMethLine()
+		
 		'}}
 
 	End Sub
@@ -580,7 +580,7 @@ Public Class ErrorEntry
 
 	End Function
 
-	'{{SETI_AUTHOR_CODE_LogEntry_Private_Methods
+	'{{SETI_AUTHOR_CODE_ErrorEntry_Private_Methods
 	Private Sub setLibClassMethLine()
 		Dim stackcontent as Variant 
 		Dim i as Integer 
@@ -598,14 +598,11 @@ Public Class ErrorEntry
 		Dim isEA3 As Boolean 
 
 		' BEGIN CODE 
-		lines = split(stacktrace, LF) 
+		lines = split(Me.stacktrace_, LF) 
 		firstLine = split(lines(0), ",")
+		If (UBound(firstLine) < 2) Then Return 
 
-		If (UBound(firstLine) < 2) Then 
-			Return
-		Else
-			isEA3 = True 
-		End If
+		isEA3 = (Ubound(firstline) < 3)
 
 		For idx = 0 to Ubound(lines) 
 			lineentry = Trim$(cstr(lines(idx)))		
@@ -635,13 +632,11 @@ Public Class ErrorEntry
 					If isEA3 Then 
 						Me.libraryname_ = elements(0)
 						Me.methodname_ = elements(1) 
-						Me.linenum_ = cint(elements(2))
 
 					Else 
 						Me.libraryname_ = elements(0)
 						Me.classname_ = elements(1) 
 						Me.methodname_ = elements(2) 
-						Me.linenum_ = cint(elements(3))
 					End If 
 
 					Exit For 
@@ -650,8 +645,6 @@ Public Class ErrorEntry
 
 		Me.stacktrace_ = Join(FullTrim(lines), LF)
 	End Sub 
-	'}}
-	'{{SETI_AUTHOR_CODE_ErrorEntry_Private_Methods
 	'}} 
 
 End Class 
@@ -659,7 +652,7 @@ End Class
 
 %REM
 	Class ErrorSession 
-	Stack Collection of ErrorEntity objects. 
+	Stack Collection of ErrorEntry objects. 
  
 %END REM
 Public Class ErrorSession 
@@ -690,7 +683,7 @@ Public Class ErrorSession
 
 	%REM
 		Property errors 
-		Array of ErrorEntity objects representing all of the errors that have been added to the session. 
+		Array of ErrorEntry objects representing all of the errors that have been added to the session. 
 	
 		@return	Variant
 	%END REM
@@ -747,22 +740,18 @@ Do not directly use this constructor, use getErrorSession() instead.
 
 	%REM
 		Function createErrorEntry 
-		Spawns a new ErrorEntity object and adds it to the ErrorSession.  Conditionally spawns a LogEntry in the Global LogSession instance. 
+		Spawns a new ErrorEntry object and adds it to the ErrorSession.  Conditionally spawns a LogEntry in the Global LogSession instance. 
 	
-		@param	className 	Class where the object creation was triggered. Blank if not within a class.  (Passed to the ErrorEntity constructor)
-
 		@param	levelNum 	Logging Level (NO_LOGGING, LOG_TRACE, LOG_DEBUG, etc).  Used for conditionally creating a LogEntry 
 
 		@return	ErrorEntry
 	%END REM
-	Public Function createErrorEntry(className As String, levelNum As Integer) As ErrorEntry 
-		'{{SETI_AUTHOR_CODE_addError_implementation 
+	Public Function createErrorEntry(levelNum As Integer) As ErrorEntry 
+		'{{SETI_AUTHOR_CODE_createErrorEntry_implementation
 		Dim ee as ErrorEntry 
 
 		Set ee = New ErrorEntry(||, 0, 0, levelNum)
 		Return me.push(ee) 
-		'}}
-		'{{SETI_AUTHOR_CODE_createErrorEntry_implementation
 		'}}
 
 	End Function
@@ -770,13 +759,11 @@ Do not directly use this constructor, use getErrorSession() instead.
 
 	%REM
 		Function createCustomErrorEntry 
-		Spawns a new Custom ErrorEntity object and adds it to the ErrorSession.  Conditionally spawns a LogEntry in the Global LogSession instance. 
+		Spawns a new Custom ErrorEntry object and adds it to the ErrorSession.  Conditionally spawns a LogEntry in the Global LogSession instance. 
 	
-		@param	className 	Class where the object creation was triggered. Blank if not within a class.  (Passed to the ErrorEntity constructor)
+		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used.
 
-		@param	message 	Error message describing the error.  If code is less than 1 the value of Error$() will be used. 
-
-		@param	code 	Numeric code of the error. 	If less than 1 the value of Err() will be used.  
+		@param	code 	 Numeric code of the error.  If less than 1 the value of Err() will be used.  
 
 		@param	lineNum 	Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used. 
 
@@ -784,7 +771,7 @@ Do not directly use this constructor, use getErrorSession() instead.
 
 		@return	ErrorEntry
 	%END REM
-	Public Function createCustomErrorEntry(className As String, message As String, code As Integer, lineNum As Integer, levelNum As Integer) As ErrorEntry 
+	Public Function createCustomErrorEntry(message As String, code As Integer, lineNum As Integer, levelNum As Integer) As ErrorEntry 
 		'{{SETI_AUTHOR_CODE_addError_implementation
 		Dim ee as ErrorEntry 
 
@@ -840,6 +827,20 @@ Public Class LogEntry
 
 	Private stackprocessed_ As Boolean 
 	'}}
+
+
+	%REM
+		Property calleeLineNum 
+		Line number of the calling code which instantiated this object instance. 
+	
+		@return	Integer
+	%END REM
+	Public Property Get calleeLineNum As Integer 
+		'{{SETI_AUTHOR_CODE_Get.calleeLineNum_implementation
+		Return Me.calleeLinenum_
+		'}}
+
+	End Property
 
 
 	%REM
@@ -1026,21 +1027,6 @@ Public Class LogEntry
 
 	End Property
 
-
-	%REM
-		Property calleeLineNum 
-
-		@return	Integer
-	%END REM
-	Public Property Get calleeLineNum As Integer 
-		'{{SETI_AUTHOR_CODE_Get.lineNum_implementation
-		Return Me.calleeLinenum_
-		'}}
-		'{{SETI_AUTHOR_CODE_Get.calleeLineNum_implementation
-		'}}
-
-	End Property
-
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Properties
 	'}}
 
@@ -1186,12 +1172,9 @@ Public Class LogEntry
 		' BEGIN CODE 
 		lines = split(Me.stacktrace_, LF) 
 		firstLine = split(lines(0), ",")
+		If (UBound(firstLine) < 2) Then Return 
 
-		If (UBound(firstLine) < 2) Then 
-			Return
-		Else
-			isEA3 = True 
-		End If
+		isEA3 = (Ubound(firstLine) < 3)
 
 		For idx = 0 to Ubound(lines) 
 			lineentry = Trim$(cstr(lines(idx)))		
@@ -1513,7 +1496,6 @@ Public Class LogSession
 		'{{SETI_AUTHOR_CODE_createLogEntry_implementation
 		Dim temp as LogEntry
 		Set temp = New LogEntry(levelNum, message, extInfo)
-		If temp is Nothing Then Print "LogEntry could not be created for " & message
 
 		If Me.isEmpty Then
 			Redim Me.content_(0) As LogEntry
@@ -1537,21 +1519,6 @@ End Class
 
 
 %REM
-	Sub Initialize 
-	Instantiates the Global Log Session. 
-	
-%END REM
-Sub Initialize() 
-	'{{SETI_AUTHOR_CODE_Initialize_implementation
-	fromHere = True
-	Set globalLogSession = New LogSession()
-	fromHere = False
-	'}}
-
-End Sub
-
-
-%REM
 	Function getErrorSession 
 	Gets the ErrorSession 
 	
@@ -1571,4 +1538,17 @@ Public Function getErrorSession() As ErrorSession
 End Function
 
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Methods
+' NOTE: Sub Initialize is here so it will not be overwritten by VSID Code Updates! 
+%REM
+	Sub Initialize 
+	Instantiates the Global Log Session. 
+
+%END REM
+Sub Initialize() 
+	fromHere = True
+	Set globalLogSession = New LogSession()
+	fromHere = False
+
+End Sub
+
 '}} 

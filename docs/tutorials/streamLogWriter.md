@@ -60,19 +60,12 @@ Sub initializeLog()
     Dim rbool as Boolean
     Dim myOS as New OSUtils
 
-    ' make sure the logStream object is loaded, 
-    ' and the file path is set appropriately
+    ' make sure the logStream object is loaded, and the file path is set appropriately
     If logStream_ is nothing Then
         Set logStream_ = New Stream
-
         rbool = myOS.makeDirectories(logDir_) ' ensures the log directory exists 
-        If not rbool Then Error 1001, "Error creating log directory (" &_ 
-        logDir_ & ")"
-
-        logFilePath_ = logDir_ & "/" &_ 
-        "log_" & Format(Now, "YYYYMMDD-hhmmss") &_ 
-        "_" & createUUID() & ".log"
-
+        If not rbool Then Error 1001, "Error creating log directory (" & logDir_ & ")"
+        logFilePath_ = logDir_ & "/" & "log_" & Format(Now, "YYYYMMDD-hhmmss") & "_" & createUUID() & ".log"
         Call logStream_.open(logFilePath_, "UTF-8")
     End If
 End Sub
@@ -83,8 +76,7 @@ The `Sub outputLogEntryMessage()` is used to add each log entry to the log strea
 
 ```vbscript
 Public Sub outputLogEntryMessage(message as String)
-    ' this writes the log entry to the stream 
-    ' every time a log entry is added to the log
+    ' this writes the log entry to the stream every time a log entry is added to the log
     Call logStream_.writeText(message, EOL_LF)
 End Sub
 ```
@@ -108,7 +100,7 @@ Class LogWriterStream as BaseLogWriter
     Private logStream_ as Stream
 
     Sub New(label as String, minLevel as Integer, maxLevel as Integer, formatter as String)
-    ' this will write the log entries to a subdirectory called logs in the current directory
+        ' this will write the log entries to a subdirectory called logs in the current directory
         logDir_ = CurDir() & "/logs"
     End Sub
     
@@ -142,7 +134,7 @@ End Class
 Now that we have our **StreamLogWriter** class, let's write a small script to test and make sure it works.
 
 ## Testing the StreamLogWriter Class
-We can test our **StreamLogWriter** class by adding a small `Sub Initialize` routine to our script library. In this subroutine we'll:
+We can test our **StreamLogWriter** class by adding a small `Sub Initialize` routine to our script library. In this subroutine we will:
 
 - Instantiate our `StreamLogWriter` object by calling the `New` method
 - Add our new `streamWriter` object to the `globalLogSession`
@@ -153,9 +145,9 @@ Sub Initialize
     Dim streamWriter as New LogWriterStream("StreamLogWriter", LOG_DEBUG, LOG_ERROR, "{{LEVELNAME}}: {{MESSAGE}}")
   
     Call globalLogSession.addLogWriter(streamWriter)
-    Call globalLogSession.createLogEntry(LOG_INFO, "Here's a log entry", "", "")
-    Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Here's a logged error", "")
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Debug message", "Here's a debug message", "")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Here's a log entry", "")
+    Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Here's a logged error")
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Debug message", "Here's a debug message")
 End Sub
 ```
 ### Results
@@ -166,3 +158,6 @@ INFO: Here's a log entry
 ERROR: Error encountered
 DEBUG: Debug message
 ```
+
+See [sample code](../assets/example_code/streamWriterSample.txt)
+
