@@ -30,10 +30,10 @@ Option Public
 Public Const NO_LOGGING = 0 	' Only used in LogWriters, to prevent logging any log entries.
 Public Const LOG_TRACE = 1 		' Lowest logging level, for most verbose logging.
 Public Const LOG_DEBUG = 2 		' Fifth-highest logging level, for more extensive messages than most support requires.
-Public Const LOG_INFO = 4 		' Fourth-highest logging level, for informational messages.
-Public Const LOG_WARN = 8 		' Third-highest logging level, for log entries that are not errors but should be addressed.
-Public Const LOG_ERROR = 16 	' Second-highest logging level, for errors that are not fatal to continuing process.
-Public Const LOG_FATAL = 32 	' Highest logging level.
+Public Const LOG_INFO = 3 		' Fourth-highest logging level, for informational messages.
+Public Const LOG_WARN = 4 		' Third-highest logging level, for log entries that are not errors but should be addressed.
+Public Const LOG_ERROR = 5 		' Second-highest logging level, for errors that are not fatal to continuing process.
+Public Const LOG_FATAL = 6 		' Highest logging level.
 '}}
 
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Constants
@@ -551,7 +551,8 @@ Public Class ErrorEntry
 		If (lineNum < 1) Then Me.linenum_  = Erl() Else Me.linenum_ = lineNum 
 
 		Me.stacktrace_ = getThreadInfo(12) 
-
+		Call Me.setLibClassMethLine()
+		
 		If (levelNum != NO_LOGGING) Then 
 			Try 
 				Call globalLogSession.createLogEntry(levelNum, Me.getLogMessage(), Me.stackTrace)
@@ -560,8 +561,6 @@ Public Class ErrorEntry
 			End Try 
 		End If 
 
-		Call Me.setLibClassMethLine()
-		
 		'}}
 
 	End Sub
@@ -582,9 +581,6 @@ Public Class ErrorEntry
 
 	'{{SETI_AUTHOR_CODE_ErrorEntry_Private_Methods
 	Private Sub setLibClassMethLine()
-		Dim stackcontent as Variant 
-		Dim i as Integer 
-
 		Dim lines As Variant 
 		Dim firstLine as Variant
 		Dim elements As Variant 
@@ -593,34 +589,27 @@ Public Class ErrorEntry
 		Dim libclassmeth As String
 
 		Dim idx as Integer 
-		Dim result as Integer 
-
 		Dim isEA3 As Boolean 
+
 
 		' BEGIN CODE 
 		lines = split(Me.stacktrace_, LF) 
 		firstLine = split(lines(0), ",")
 		If (UBound(firstLine) < 2) Then Return 
 
-		isEA3 = (Ubound(firstline) < 3)
+		isEA3 = (Ubound(firstLine) < 3)
 
 		For idx = 0 to Ubound(lines) 
 			lineentry = Trim$(cstr(lines(idx)))		
 			libclassmeth = Trim$(strLeftBack(lineentry, |,|))
 			elements = Split(Trim(lineentry), |,|)
+
 			If (UBound(elements) < 2) Then Exit For
 
 			Select Case libclassmeth 
 				Case |VOLTSCRIPTLOGGING,NEW|, _ 
-					|VOLTSCRIPTLOGGING,CREATELOGENTRY|, _ 
-					|VOLTSCRIPTLOGGING,NEW|, _ 
 					|VOLTSCRIPTLOGGING,CREATEERRORENTRY|, _ 
-					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTRY|
-
-					lines(idx) = ""
-
-				Case |VOLTSCRIPTLOGGING,LOGENTRY,NEW|, _ 
-					|VOLTSCRIPTLOGGING,LOGSESSION,CREATELOGENTRY|, _ 
+					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTRY|, _ 
 					|VOLTSCRIPTLOGGING,ERRORENTRY,NEW|, _ 
 					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATEERRORENTRY|, _ 
 					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATECUSTOMERRORENTRY|
@@ -628,7 +617,6 @@ Public Class ErrorEntry
 					lines(idx) = ""
 
 				Case Else 
-
 					If isEA3 Then 
 						Me.libraryname_ = elements(0)
 						Me.methodname_ = elements(1) 
@@ -978,21 +966,29 @@ Public Class LogEntry
 	Public Property Get levelName As String 
 		'{{SETI_AUTHOR_CODE_Get.levelName_implementation
 		Select Case Me.level_
-			Case 0:
+			Case NO_LOGGING:
 				Return "NO_LOGGING"
-			Case 1:
+				
+			Case LOG_TRACE:
 				Return "TRACE"
-			Case 2:
+
+			Case LOG_DEBUG:
 				Return "DEBUG"
-			Case 4:
+
+			Case LOG_INFO:
 				Return "INFO"
-			Case 8:
+
+			Case LOG_WARN:
 				Return "WARN"
-			Case 16:
+
+			Case LOG_ERROR:
 				Return "ERROR"
-			Case 32:
+
+			Case LOG_FATAL:
 				Return "FATAL"
+
 			Case Else:
+
 				Return ""
 		End Select
 		'}}
@@ -1154,9 +1150,6 @@ Public Class LogEntry
 
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Methods
 	Private Sub setLibClassMethLine()
-		Dim stackcontent as Variant 
-		Dim i as Integer 
-
 		Dim lines As Variant 
 		Dim firstLine as Variant
 		Dim elements As Variant 
@@ -1165,9 +1158,9 @@ Public Class LogEntry
 		Dim libclassmeth As String
 
 		Dim idx as Integer 
-		Dim result as Integer 
 
 		Dim isEA3 As Boolean 
+
 
 		' BEGIN CODE 
 		lines = split(Me.stacktrace_, LF) 
@@ -1185,22 +1178,12 @@ Public Class LogEntry
 			Select Case libclassmeth 
 				Case |VOLTSCRIPTLOGGING,NEW|, _ 
 					|VOLTSCRIPTLOGGING,CREATELOGENTRY|, _ 
-					|VOLTSCRIPTLOGGING,NEW|, _ 
-					|VOLTSCRIPTLOGGING,CREATEERRORENTRY|, _ 
-					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTRY|
-
-					lines(idx) = ""
-
-				Case |VOLTSCRIPTLOGGING,LOGENTRY,NEW|, _ 
-					|VOLTSCRIPTLOGGING,LOGSESSION,CREATELOGENTRY|, _ 
-					|VOLTSCRIPTLOGGING,ERRORENTRY,NEW|, _ 
-					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATEERRORENTRY|, _ 
-					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATECUSTOMERRORENTRY|
+					|VOLTSCRIPTLOGGING,LOGENTRY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,LOGSESSION,CREATELOGENTRY|
 
 					lines(idx) = ""
 
 				Case Else 
-
 					If isEA3 Then 
 						Me.libraryname_ = elements(0)
 						Me.methodname_ = elements(1) 
@@ -1230,8 +1213,7 @@ Public Class LogEntry
 	End Sub 
 
 	Private Function isValidLevel(levelNum as Integer, includeNoLogging as Boolean) as Boolean
-		If (includeNoLogging && levelNum = NO_LOGGING) Then Return True
-		Return (levelNum = LOG_FATAL) || (levelNum = LOG_ERROR) || (levelNum = LOG_WARN) || (levelNum = LOG_INFO) || (levelNum = LOG_DEBUG) || (levelNum = LOG_TRACE)
+		Return (includeNoLogging && levelNum = NO_LOGGING) || (levelNum >= LOG_TRACE) && (levelNum <= LOG_FATAL) 
 	End Function
 	'}} 
 
