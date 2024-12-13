@@ -6,7 +6,7 @@ Use "../../../src/VoltScriptLogging"
 
 Sub Initialize()
     Dim errors as Variant 
-    Dim ee as ErrorEntity
+    Dim ee as ErrorEntry
     Dim writer as BaseLogWriter 
 
     ' Additional code required here to add a LogWriter, or nothing gets written out!
