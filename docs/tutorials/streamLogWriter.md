@@ -1,4 +1,4 @@
-# Create a Stream LogWriter to Write Logs to a Text File
+# Create a Stream LogWriter to write logs to a text file
 
 ## Prerequisites
 It's beneficial if you're familiar with how VoltScript Logging works and understand the basics of the **BasicLogWriter** class. Please review the following How-Tos for more information:
@@ -24,7 +24,7 @@ Now there are a few methods within the **BaseLogWriter** class that we will need
 
 Let's start by setting up the basics of our `StreamLogWriter` class.
 
-### StreamLogWriter - The Basics
+### StreamLogWriter - the basics
 Let's create the outline of our `StreamLogWriter` class and add in some necessary class properties that we'll need.
 
 ```vbscript
@@ -109,16 +109,14 @@ Class LogWriterStream as BaseLogWriter
         Dim myOS as New OSUtils
 
         ' make sure the logStream object is loaded, and the file path is set appropriately
-        If logStream_ is nothing Then
-            Set logStream_ = New Stream
-            rbool = myOS.makeDirectories(logDir_) ' ensures the log directory exists 
-            If not rbool Then Error 1001, "Error creating log directory (" & logDir_ & ")"
-            logFilePath_ = logDir_ & "/" & "log_" & Format(Now, "YYYYMMDD-hhmmss") & "_" & createUUID() & ".log"
-            Call logStream_.open(logFilePath_, "UTF-8")
-        End If
+        Set logStream_ = New Stream
+        rbool = myOS.makeDirectories(logDir_) ' ensures the log directory exists 
+        If not rbool Then Error 1001, "Error creating log directory (" & logDir_ & ")"
+        logFilePath_ = logDir_ & "/" & "log_" & Format(Now, "YYYYMMDD-hhmmss") & "_" & createUUID() & ".log"
+        Call logStream_.open(logFilePath_, "UTF-8")
     End Sub
 
-	Public Sub outputLogEntryMessage(message as String)
+    Public Sub outputLogEntryMessage(message as String)
         ' this writes the log entry to the stream every time a log entry is added to the log
         Call logStream_.writeText(message, EOL_LF)
     End Sub
@@ -150,6 +148,7 @@ Sub Initialize
     Call globalLogSession.createLogEntry(LOG_DEBUG, "Debug message", "Here's a debug message")
 End Sub
 ```
+
 ### Results
 If your code runs successfully you'll find a new `logs` subdirectory under your current directory, and it will contain your log file. The contents of the log file should look like this:
 
@@ -161,3 +160,38 @@ DEBUG: Debug message
 
 See [sample code](../assets/example_code/streamWriterSample.txt)
 
+## Poor man's file LogWriter
+
+It's possible to create a simple FileLogWriter using standard VoltScript functions. This avoids dependencies, but StreamVSE handles directory creation and is nicer for outputting content. The code for this would be:
+
+``` vbscript
+Class BasicFileWriter as BaseLogWriter
+    Private logDir_ as String
+    Private fileNum as Integer
+
+    Sub New(label as String, minLevel as Integer, maxLevel as Integer, formatter as String)
+        ' this assumes a subdirectory exists called logs in the current directory
+        logDir_ = CurDir() & "/logs"
+    End Sub
+
+    Sub initializeLog()
+        fileNum% = FreeFile()
+        Open logDir_ & "/log" & CreateUUID() & ".txt" For Output As fileNum%
+    End Sub
+
+    Public Sub outputLogEntryMessage(message as String)
+        Print #fileNum%, message
+    End Sub
+
+    Public Sub terminateLog()
+        Close fileNum%
+    End Sub
+
+End Class
+```
+
+!!! tip
+    We strongly recommend that you use StreamVSE instead. That is the approach to writing to files that our production code uses.
+
+
+See [sample code](../assets/example_code/basicFileWriterSample.txt)

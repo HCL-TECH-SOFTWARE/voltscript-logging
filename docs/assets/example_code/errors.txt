@@ -15,11 +15,12 @@ Sub Initialize()
 
     If (getErrorSession().errorCount > 0) Then
         errors = getErrorSession().errors 
-        Forall element in errors
+        ForAll element in errors
             Set ee = element
             Call globalLogSession.createLogEntry(LOG_FATAL, ee.getLogMessage(), ee.stackTrace)
-        End Forall
+        End ForAll
     End If
+
 
     Call performCreateCustomErrorEntryInstances() 
     

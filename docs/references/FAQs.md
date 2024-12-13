@@ -21,3 +21,9 @@ The framework provides tooling for managing errors and logs and is deliberately 
 We don't want to add dependencies, so only the core language is used. This means `Now()` core function, which uses the timezone of the operating system the VoltScript program running the code is deployed to.
 
 If you wish to force UTC, you can extend LogEntry class with a class that uses ZuluVSE. We'll not be adding dependencies to this library.
+
+## I've added a LogWriter but nothing is logged
+
+Has your code exited with an uncaught runtime error?
+
+--8<-- "nologs.md"

@@ -1,7 +1,7 @@
-# Error tracking
+# Error handling
 
 !!! note
-    This how to does not cover best practices around error handling. That is independent of a specific error tracking or logging library.
+    This how to does not cover best practices around error handling. For some rationales behind how you would choose to throw or handle an error, see the [error management topic guide](../topicguides/errors.md).
 
 Error tracking is used for capturing VoltScript errors. These are errors triggered by VoltScript error codes (e.g. 13, Type mismatch) or custom errors thrown by `Error errCode, errMsg`. The ErrorEntry object will automatically parse the error code, message, line number and stack trace to store the relevant information.
 
@@ -52,7 +52,7 @@ End Sub
 
 The `errorCount` can be used to check whether errors have been logged. This can avoid passing errors up the stack, as below:
 
-``` vbscript
+``` vbscript linenums="1"
 Sub Initialize()
     Dim errors as Variant 
     Dim ee as ErrorEntry
@@ -64,10 +64,10 @@ Sub Initialize()
 
     If (getErrorSession().errorCount > 0) Then
         errors = getErrorSession().errors 
-        Forall element in errors
+        ForAll element in errors
             Set ee = element
-            Call globalLogSession.createLogEntry(LOG_FATAL, ee.getLogMessage(), ee.stackTrace)
-        End Forall
+            Call globalLogSession.createLogEntry(LOG_FATAL, ee.getLogMessage(), ee.stackTrace, "")
+        End ForAll
     End If
 
 End Sub
@@ -75,22 +75,34 @@ End Sub
 
 `ErrorEntry.getLogMessage()` formats the error string, error code and line number in a human-readable string. Additional information about the library, class, and method are in contained int the stack trace.  When spawning a LogEntry we pass the stack trace as extended information.
 
+!!! important
+    This code uses a ForAll loop from line 12 to log entries. You don't need to do that, we'll see a better way to log errors below.
+
+!!! important
+    This code uses a ForAll loop from line 12 to log entries. You don't need to do that, we'll see a better way to log errors below.
+
 ## Clearing the error session
 
 There may be a scenario where you are not interested in the actual errors, but just want to clear the ErrorSession to continue processing. `ErrorSession.reset()` will do this, clearing all ErrorEntry objects from the session and setting error count back to 0.
 
-## Custom Errors 
+!!! important
+    The ErrorSession and LogSession are separate. Resetting the ErrorSession does not remove any logs logged for errors. Equally, resetting the LogSession does not reset the ErrorSession: `ErrorSession.errorCount` will still be the same as before you called `globalLogSession.reset()`.
+
+!!! note
+    Another option is to capture the error count at the start of a particular step, then check the error count has not increased at the end of the step. This is particularly relevant if you are running a loop that may generate errors and an inner loop that may also generate errors. You will see this approach in VoltScript JSON Converter.
+
+## Custom Errors
 
 Custom ErrorEntry instances can be created at any time, they do **not** require an Error to be thrown and caught.  A common programming pattern of the past would be to intentionally throw an exception, then catch or trap any thrown errors, gather and log information about the error, and then throw a new error with additional contextual information.  This pattern is messy and should be avoided; being able to create an ErrorEntry instance independent of throwing an exception allows a developer to do just that. The method `createCustomErrorEntry()` has four arguments:
 
- - *message*  Error message describing the error.  If code is less than 1 the value of Error$() will be used. 
- - *code*  Numeric code of the error. 	If less than 1 the value of Err() will be used.  
- - *lineNum*  Line number in the source code where the error occurred. If code is less than 1 the value of Erl() will be used.  
- - *levelNum*  The Logging Level for conditionally spawning a LogEntry 
+- *message*  Error message describing the error.  If `code` is less than 1 the value of Error$() will be used.
+- *code*  Numeric code of the error. If less than 1 the value of Err() will be used.  
+- *lineNum*  Line number in the source code where the error occurred. If `code` is less than 1 the value of Erl() will be used.  
+- *levelNum*  The Logging Level for conditionally spawning a LogEntry.
 
-Consider the following example: 
+Consider the following example:
 
-``` vbscript 
+``` vbscript
 Sub performCreateCustomErrorEntryInstances() 
 
     ' Create custom ErrorEntry instances without throw / catch.
@@ -101,24 +113,23 @@ Sub performCreateCustomErrorEntryInstances()
     Call getErrorSession().createCustomErrorEntry("The file cannot be found", 1065, 351, LOG_ERROR)
 
 End Sub 
-``` 
+```
 
-
-## Logging Errors with context 
+## Logging Errors with context
 
 The sample code in the above `Sub Initialize()` will create LogEntries for ALL errors, using log level of LOG_FATAL.  While this may be useful in some instances, this all-or-nothing approach is not the only way to add error information to the log.  
 
-The `levelNum` argument of the `createErrorEntry()` method specifies the logging level.  If set to `NO_LOGGING` then the ErrorEntry will simply be created and added to the ErrorSession.  Passing any other valid log level will cause a new LogEntry object to be immediately created by the LogSession, using information from the ErrorEntry.   
+The `levelNum` argument of the `createErrorEntry()` method specifies the logging level.  If set to `NO_LOGGING` then the ErrorEntry will simply be created and added to the ErrorSession.  Passing any other valid log level will cause a new LogEntry object to be immediately created by the LogSession, using information from the ErrorEntry.
 
 ``` vbscript 
 Call getErrorSession().createErrorEntry(LOG_ERROR)
 ``` 
 
-This capability allows the developer to add information to the log based upon the context of the error (`LOG_TRACE`, `LOG_DEBUG`, `LOG_INFO`... `LOG_FATAL`). 
+This capability allows the developer to add information to the log based upon the context of the error (`LOG_TRACE`, `LOG_DEBUG`, `LOG_INFO`... `LOG_FATAL`).
 
-Additionally, there is no need for the developer to subsequently process the ErrorEntry instances to add information to the LogSession. 
+Additionally, there is no need for the developer to subsequently process the ErrorEntry instances to add information to the LogSession.
 
-``` vbscript
+``` vbscript linenums="1"
 Sub performFatalLoopWithContext()
 
     Dim i as Integer
@@ -130,7 +141,7 @@ Sub performFatalLoopWithContext()
             ' Do stuff
             If i < 5 Then Error 1000, "Generic Error on loop " & i
 
-            Call getErrorSession().createCustomErrorEntry("Iteration " & i, 1000 + i, 85, LOG_INFO)
+            Call getErrorSession().createCustomErrorEntry("", "Iteration " & i, 1001, 80, LOG_INFO) ' (1)!
         Catch
             Call getErrorSession().createErrorEntry(LOG_ERROR)
         End Try
@@ -139,7 +150,11 @@ Sub performFatalLoopWithContext()
     Call globalLogSession.createLogEntry(LOG_INFO, "Finished Performing a Fatal Loop with context", "")
 
 End Sub
-``` 
+```
 
+1. "80" is the current line number
+
+!!! note
+    Bear in mind line 12 will create an ErrorEntry and increment the error count, but is logging at level LOG_INFO. In reality, it would be better for this line to just create a LogEntry because there is no real error. But `createCustomErrorEntry()` is used to provide easy comparison with `createErrorEntry()`.
 
 See [sample code](../assets/example_code/errors.txt)

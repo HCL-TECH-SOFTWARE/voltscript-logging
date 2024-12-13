@@ -1,0 +1,1 @@
+If the code aborts with an uncaught error, logs are not written. You must catch all errors for logs to get created. This can be as simple as a `Try...Catch` block at the top level of your code. Or you can include `Try..Catch` blocks throughout your code and [handle all errors](../howto/errortracking.md).

@@ -29,13 +29,11 @@ Class LogWriterStream as BaseLogWriter
         Dim myOS as New OSUtils
 
         ' make sure the logStream object is loaded, and the file path is set appropriately
-        If logStream_ is nothing Then
-            Set logStream_ = New Stream
-            rbool = myOS.makeDirectories(logDir_) ' ensures the log directory exists 
-            If not rbool Then Error 1001, "Error creating log directory (" & logDir_ & ")"
-            logFilePath_ = logDir_ & "/" & "log_" & Format(Now, "YYYYMMDD-hhmmss") & "_" & createUUID() & ".log"
-            Call logStream_.open(logFilePath_, "UTF-8")
-        End If
+        Set logStream_ = New Stream
+        rbool = myOS.makeDirectories(logDir_) ' ensures the log directory exists 
+        If not rbool Then Error 1001, "Error creating log directory (" & logDir_ & ")"
+        logFilePath_ = logDir_ & "/" & "log_" & Format(Now, "YYYYMMDD-hhmmss") & "_" & createUUID() & ".log"
+        Call logStream_.open(logFilePath_, "UTF-8")
     End Sub
 
 	Public Sub outputLogEntryMessage(message as String)
