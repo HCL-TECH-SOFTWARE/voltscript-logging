@@ -73,6 +73,9 @@ These functions handle identifying if it needs to log anything, initializing wha
 !!! note
     Because there will be an increase in processing time for multiple LogWriters, it is best to minimize the number of LogWriters each piece of code needs to use or default to NO_LOGGING unless specifically switched on.
 
+!!! important
+    --8<-- "nologs.md"
+
 For different logging purposes, you should create a class extending `BaseLogWriter` and override the functions required:
 
 --8<-- "logwriter.md"

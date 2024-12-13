@@ -13,6 +13,9 @@ For example, if the *minimum* level is LOG_TRACE and *maximum* level is LOG_INFO
 
 A special level is also available for `maxLevel` in LogWriters - NO_LOGGING. If the max level is NO_LOGGING, no logs will be processed and nothing written.
 
+!!! important
+    --8<-- "nologs.md"
+
 ## Setting logging level
 
 Best practice is to define or retrieve the maximum logging level before you create the LogWriter. This could be done in a variety of ways:
@@ -22,7 +25,7 @@ Best practice is to define or retrieve the maximum logging level before you crea
 
 ## Dynamically loading loggers
 
-A typical use case is wishing to define LogWriters in a configuration file. However, because this would require additional dependencies, for example JsonVSE to load from a JSON configuration file, this functionality is not included in the core code.
+A typical use case is wishing to define LogWriters in a configuration file. This code requires a dependency on JsonVSE and VoltScript JSON Converter. So the function to read LogWriters from a JSON configuration file can be found in [VoltScript JSON Converter](https://opensource.hcltechsw.com/voltscript-json-converter/howto/jsonlogwriters.md).
 
 ## Changing logging level
 
