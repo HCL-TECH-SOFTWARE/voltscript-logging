@@ -48,6 +48,9 @@ Private Const MSG_OPERATION_FAILED = 			|The requested operation could not be co
 Private Const ERR_OPERATION_PROHIBITED = 		1003
 Private Const MSG_OPERATION_PROHIBITED = 		|Operation Prohibited. |
 
+Private Const ERR_INVALID_LOG_LEVEL = 			1198
+Private Const MSG_INVALID_LOG_LEVEL = 			|Invalid Log Level |
+
 Private Const ERR_PARAMETER_BLANK = 			1199
 Private Const MSG_PARAMETER_BLANK = 			|A required parameter is blank or missing.  |
 
@@ -353,25 +356,34 @@ Runs during cleanup of the object instance and outputs log entries
 	Private Function getFormattedString(logEntry as LogEntry) as String
 		Dim key as String
 		Dim outputStr as String
+		Dim mustacheTag as String 
+
 		Dim i as Long
 		Dim propNames as Variant
 		Dim propVal as Variant
 
 		Try
 
-		outputStr = Me.formatter
-		If (outputStr != "") Then
-			propNames = getLogEntryPropertyNames()
-			For i = 0 to UBound(propNames)
-				key = propNames(i)
-				propVal = logEntry.getPropertyValue(key)
-				outputStr = Replace(outputStr, |{{| & key & |}}|, CStr(propVal))
-			Next
-		End If
-		Return outputStr
+			outputStr = Trim$(Me.formatter)
+			If (outputStr != "") Then
+				propNames = getLogEntryPropertyNames()
+				For i = 0 to UBound(propNames)
+					key = propNames(i)
+
+					mustacheTag = |{{| & key & |}}|
+					If (instr(outputStr, mustacheTag) > 0) Then 
+						propVal = logEntry.getPropertyValue(key)
+						outputStr = Replace(outputStr, mustacheTag, CStr(propVal))
+					End If 
+				Next
+			End If
+
+			Return outputStr
+
 		Catch
 			Error Err, Error() & " on line " & Erl()
 		End Try
+
 	End Function
 	'}} 
 
@@ -546,13 +558,64 @@ Public Class ErrorEntry
 	%END REM
 	Public Sub New(message As String, code As Integer, lineNum As Integer, levelNum As Integer) 
 		'{{SETI_AUTHOR_CODE_New_implementation
+		Dim lines As Variant 
+		Dim tempElements as Variant
+		Dim elements As Variant 
+
+		Dim lineentry As String 
+		Dim libclassmeth As String
+
+		Dim idx as Integer 
+		Dim isEA3 As Boolean 
+
+
 		If (|| = Trim(message)) Then Me.message_ = Error$() Else Me.message_ = Message 
 		If (code < 1) Then Me.code_ = Err() Else Me.code_ = code 
 		If (lineNum < 1) Then Me.linenum_  = Erl() Else Me.linenum_ = lineNum 
 
-		Me.stacktrace_ = getThreadInfo(12) 
-		Call Me.setLibClassMethLine()
-		
+		' BEGIN STACK TRACE PROCESSING 
+		lines = FullTrim(split(getThreadInfo(12), LF))
+		tempElements = split(lines(0), ",")
+		isEA3 = (Ubound(tempElements) < 3)
+
+		' check for a corrupted last line entry.  If found then set it to an empty string. 
+		tempElements = split(lines(Ubound(lines)), ",")
+		If Not isNumeric(tempElements(Ubound(tempElements))) Then lines(Ubound(lines)) = ||
+
+		For idx = 0 to Ubound(lines) 
+			lineentry = Trim$(cstr(lines(idx)))		
+			libclassmeth = Trim$(strLeftBack(lineentry, |,|))
+
+			Select Case libclassmeth 
+				Case |VOLTSCRIPTLOGGING,NEW|, _ 
+					|VOLTSCRIPTLOGGING,CREATEERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORENTRY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATEERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATECUSTOMERRORENTRY|
+
+					lines(idx) = ""
+
+				Case Else 
+					elements = Split(Trim(lineentry), |,|)
+					If isEA3 Then 
+						Me.libraryname_ = elements(0)
+						Me.methodname_ = elements(1) 
+
+					Else 
+						Me.libraryname_ = elements(0)
+						Me.classname_ = elements(1) 
+						Me.methodname_ = elements(2) 
+					End If 
+
+					Exit For 
+			End Select 
+		Next 
+
+		' Prepending empty string forces String$ vs Variant of DataType 8 (String)
+		Me.stacktrace_ = || & Join(FullTrim(lines), LF)
+		' END STACK TRACE PROCESSING 
+
 		If (levelNum != NO_LOGGING) Then 
 			Try 
 				Call globalLogSession.createLogEntry(levelNum, Me.getLogMessage(), Me.stackTrace)
@@ -580,59 +643,6 @@ Public Class ErrorEntry
 	End Function
 
 	'{{SETI_AUTHOR_CODE_ErrorEntry_Private_Methods
-	Private Sub setLibClassMethLine()
-		Dim lines As Variant 
-		Dim firstLine as Variant
-		Dim elements As Variant 
-
-		Dim lineentry As String 
-		Dim libclassmeth As String
-
-		Dim idx as Integer 
-		Dim isEA3 As Boolean 
-
-
-		' BEGIN CODE 
-		lines = split(Me.stacktrace_, LF) 
-		firstLine = split(lines(0), ",")
-		If (UBound(firstLine) < 2) Then Return 
-
-		isEA3 = (Ubound(firstLine) < 3)
-
-		For idx = 0 to Ubound(lines) 
-			lineentry = Trim$(cstr(lines(idx)))		
-			libclassmeth = Trim$(strLeftBack(lineentry, |,|))
-			elements = Split(Trim(lineentry), |,|)
-
-			If (UBound(elements) < 2) Then Exit For
-
-			Select Case libclassmeth 
-				Case |VOLTSCRIPTLOGGING,NEW|, _ 
-					|VOLTSCRIPTLOGGING,CREATEERRORENTRY|, _ 
-					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTRY|, _ 
-					|VOLTSCRIPTLOGGING,ERRORENTRY,NEW|, _ 
-					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATEERRORENTRY|, _ 
-					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATECUSTOMERRORENTRY|
-
-					lines(idx) = ""
-
-				Case Else 
-					If isEA3 Then 
-						Me.libraryname_ = elements(0)
-						Me.methodname_ = elements(1) 
-
-					Else 
-						Me.libraryname_ = elements(0)
-						Me.classname_ = elements(1) 
-						Me.methodname_ = elements(2) 
-					End If 
-
-					Exit For 
-			End Select 
-		Next 
-
-		Me.stacktrace_ = Join(FullTrim(lines), LF)
-	End Sub 
 	'}} 
 
 End Class 
@@ -1065,7 +1075,7 @@ Public Class LogEntry
 		Sub New 
 		Constructor
 	
-		@param	levelNum 	Level for the LogEntry, restricted to the LOG_xxx constants
+		@param	levelNum 	Logging Level for the LogEntry, restricted to the LOG_xxx constants
 
 		@param	message 	A short message to log
 
@@ -1076,11 +1086,21 @@ Public Class LogEntry
 	%END REM
 	Public Sub New(levelNum As Integer, message As String, extInfo As String) 
 		'{{SETI_AUTHOR_CODE_New_implementation
+		Dim lines As Variant 
+		Dim tempElements as Variant
+		Dim elements As Variant 
+
+		Dim lineentry As String 
+		Dim libclassmeth As String
+
+		Dim idx as Integer 
+		Dim isEA3 As Boolean 
+
+
+		' Fail immediately if levelNum is invalid 
+		If Not isValidLevel(levelNum, False) Then Error ERR_INVALID_LOG_LEVEL, MSG_INVALID_LOG_LEVEL & |(| & cstr(levelNum) & |).  Use one of the LOG_... constants!|
 
 		' set the level, message, and any extended info
-		If (isValidLevel(levelNum, False) = False) Then
-			Error 1000, |Invalid logging level: | & cstr(levelNum) & |. Use one of the LOG_... constants|
-		End If
 		me.level_ = levelNum
 		me.message_ = message 
 		me.extInfo_ = extInfo
@@ -1090,9 +1110,60 @@ Public Class LogEntry
 
 		me.uuid_ = CreateUuid()
 
-		Me.stacktrace_ = getThreadInfo(12) 
+		' BEGIN STACK TRACE PROCESSING 
+		lines = FullTrim(split(getThreadInfo(12), LF))
+		tempElements = split(lines(0), ",")
+		isEA3 = (Ubound(tempElements) < 3)
 
-		Call setLibClassMethLine()		
+		' check for a corrupted last line entry.  If found then set it to an empty string. 
+		tempElements = split(lines(Ubound(lines)), ",")
+		If Not isNumeric(tempElements(Ubound(tempElements))) Then lines(Ubound(lines)) = ||
+
+		For idx = 0 to Ubound(lines) 
+			lineentry = Trim$(cstr(lines(idx)))		
+			libclassmeth = Trim$(strLeftBack(lineentry, |,|))
+
+			Select Case libclassmeth 
+				Case |VOLTSCRIPTLOGGING,NEW|, _ 
+					|VOLTSCRIPTLOGGING,CREATEERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,CREATECUSTOMERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,CREATELOGENTRY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORENTRY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,LOGENTRY,NEW|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATEERRORENTRY|, _ 
+					|VOLTSCRIPTLOGGING,ERRORSESSION,CREATECUSTOMERRORENTRY|, _
+					|VOLTSCRIPTLOGGING,LOGSESSION,CREATELOGENTRY|
+					lines(idx) = ""
+
+				Case Else 
+					elements = Split(Trim(lineentry), |,|)
+					If isEA3 Then 
+						Me.libraryname_ = elements(0)
+						Me.methodname_ = elements(1) 
+						Me.linenum_ = cint(elements(2))
+
+					Else 
+						Me.libraryname_ = elements(0)
+						Me.classname_ = elements(1) 
+						Me.methodname_ = elements(2) 
+						Me.linenum_ = cint(elements(3))
+					End If 
+
+					If (UBound(lines) > idx) Then
+						elements = Split(Trim(lines(idx + 1)), |,|)
+						If (isEA3) Then
+                            If UBound(elements) > 1 Then Me.calleeLineNum_ = cint(elements(2))
+                        Else
+                            If UBound(elements) > 2 Then Me.calleeLineNum_ = cint(elements(3))
+                        End If
+					End If
+
+					Exit For 
+			End Select 
+		Next 
+
+		' Prepending empty string forces String$ vs Variant of DataType 8 (String)
+		Me.stacktrace_ = || & Join(FullTrim(lines), LF)
 
 		'}}
 
@@ -1149,69 +1220,6 @@ Public Class LogEntry
 	End Function
 
 	'{{SETI_AUTHOR_CODE_LogEntry_Private_Methods
-	Private Sub setLibClassMethLine()
-		Dim lines As Variant 
-		Dim firstLine as Variant
-		Dim elements As Variant 
-
-		Dim lineentry As String 
-		Dim libclassmeth As String
-
-		Dim idx as Integer 
-
-		Dim isEA3 As Boolean 
-
-
-		' BEGIN CODE 
-		lines = split(Me.stacktrace_, LF) 
-		firstLine = split(lines(0), ",")
-		If (UBound(firstLine) < 2) Then Return 
-
-		isEA3 = (Ubound(firstLine) < 3)
-
-		For idx = 0 to Ubound(lines) 
-			lineentry = Trim$(cstr(lines(idx)))		
-			libclassmeth = Trim$(strLeftBack(lineentry, |,|))
-			elements = Split(Trim(lineentry), |,|)
-			If (UBound(elements) < 2) Then Exit For
-
-			Select Case libclassmeth 
-				Case |VOLTSCRIPTLOGGING,NEW|, _ 
-					|VOLTSCRIPTLOGGING,CREATELOGENTRY|, _ 
-					|VOLTSCRIPTLOGGING,LOGENTRY,NEW|, _ 
-					|VOLTSCRIPTLOGGING,LOGSESSION,CREATELOGENTRY|
-
-					lines(idx) = ""
-
-				Case Else 
-					If isEA3 Then 
-						Me.libraryname_ = elements(0)
-						Me.methodname_ = elements(1) 
-						Me.linenum_ = cint(elements(2))
-
-					Else 
-						Me.libraryname_ = elements(0)
-						Me.classname_ = elements(1) 
-						Me.methodname_ = elements(2) 
-						Me.linenum_ = cint(elements(3))
-					End If 
-
-					If (UBound(lines) > idx) Then
-						elements = Split(Trim(lines(idx + 1)), |,|)
-						If (isEA3) Then
-                            If UBound(elements) > 1 Then Me.calleeLineNum_ = cint(elements(2))
-                        Else
-                            If UBound(elements) > 2 Then Me.calleeLineNum_ = cint(elements(3))
-                        End If
-					End If
-
-					Exit For 
-			End Select 
-		Next 
-
-		Me.stacktrace_ = Join(FullTrim(lines), LF)
-	End Sub 
-
 	Private Function isValidLevel(levelNum as Integer, includeNoLogging as Boolean) as Boolean
 		Return (includeNoLogging && levelNum = NO_LOGGING) || (levelNum >= LOG_TRACE) && (levelNum <= LOG_FATAL) 
 	End Function

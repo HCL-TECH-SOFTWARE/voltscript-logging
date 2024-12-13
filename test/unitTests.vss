@@ -392,7 +392,7 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
     Catch
         Call logEntrySuite.addResult(True, "")
         Call logEntrySuite.describe("Test error with bad level was 156").assertEqualsInteger(156, Err())
-        Call logEntrySuite.describe("Test error message with bad level was correct").assertTrue(Instr(Error(), "Invalid logging level: 400") > 0)
+        Call logEntrySuite.describe("Test error message with bad level was correct").assertTrue(Instr(Error(), "Invalid Log Level (400)") > 0)
     End Try
 
     Dim timestamp as String
