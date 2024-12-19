@@ -143,9 +143,9 @@ Sub Initialize
     Dim streamWriter as New LogWriterStream("StreamLogWriter", LOG_DEBUG, LOG_ERROR, "{{LEVELNAME}}: {{MESSAGE}}")
   
     Call globalLogSession.addLogWriter(streamWriter)
-    Call globalLogSession.createLogEntry(LOG_INFO, "Here's a log entry", "")
-    Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Here's a logged error")
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Debug message", "Here's a debug message")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Here's a log entry", "", Nothing)
+    Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Here's a logged error", Nothing)
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Debug message", "Here's a debug message", Nothing)
 End Sub
 ```
 

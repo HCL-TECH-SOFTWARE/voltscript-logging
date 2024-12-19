@@ -7,7 +7,6 @@ The LogSession instance is a singleton, accessed by the global variable `globalL
 !!! info
     VoltScript objects cannot persist between script runs. So when the `Sub Initialize` is first triggered, the LogSession instance will be new and empty. When the `Sub Initialize` ends, the LogSession instance will be deleted.
 
-
 ## Create log entries
 
 !!! tip
@@ -19,19 +18,19 @@ The following snippet shows an example of creating log entries:
 Function doProcessing(passedVal as Integer) as Boolean
 
     Print |doProcessing(| & passedVal & |)|
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered doProcessing", "")
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered doProcessing", "", Nothing)
     Try
         If (passedVal > 4) Then Error 4000, "Invalid entry"
 
-        Call globalLogSession.createLogEntry(LOG_DEBUG, "Ran doProcessing successfully", "")
+        Call globalLogSession.createLogEntry(LOG_DEBUG, "Ran doProcessing successfully", "", Nothing)
     Catch
         If (passedVal > 6) Then 
-            Call globalLogSession.createLogEntry(LOG_FATAL, "Error encountered", "Value passed: " & passedVal)
+            Call globalLogSession.createLogEntry(LOG_FATAL, "Error encountered", "Value passed: " & passedVal, Nothing)
         Else 
-            Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Value passed: " & passedVal)
+            Call globalLogSession.createLogEntry(LOG_ERROR, "Error encountered", "Value passed: " & passedVal, Nothing)
         End If 
     Finally
-        Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished doProcessing", "")
+        Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished doProcessing", "", Nothing)
     End Try
 
 End Function
@@ -42,7 +41,7 @@ The parameters are:
 1. Log level. Using the constants is recommended, and the code ensures a valid log level is passed.
 1. A log message, typically not verbose.
 1. Extended information in string format.
-1. The class name the current code is in.
+1. An ErrorEntry object from which to extract previously processed values.
 
 A unique identifier will be assigned to the LogEntry and a timestamp captured in UTC ISO 8601 format. The full stack trace will also be captured, as will the script name and method. Consequently, this information does not need to be included in the message or extended info.
 

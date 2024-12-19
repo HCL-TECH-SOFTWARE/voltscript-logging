@@ -50,16 +50,18 @@ The formatter uses mustache syntax (`{{variable_name}}`) to replace content in t
 | MESSAGE            | The log message                                                        |
 | CLASSNAME          | The name of the class passed into the LogEntry                         |
 | LINENUM            | The line number passed into the LogEntry                               |
-| CALLEELINENUM      | Calling code ine number triggering the creation of a LogEntry instance |
 | LIBRARYNAME        | The name of the library or module where the LogEntry was generated     |
 | METHODNAME         | The name of the method or function where the LogEntry was generated    |
 | TIMESTAMP          | The timestamp of the log entry                                         |
 | EXTINFO            | Additional extended information passed into the log entry              |
 
-
-
 !!! warning
     Variables are case-sensitive and **must** be entered in upper case in the formatter.
+
+!!! info
+    LINENUM is always the line your code triggered VoltScriptLogging, either by explicitly calling `globalLogSession.createLogEntry()` or calling `getErrorSession().createErrorEntry()` or `getErrorSession.createCustomErrorEntry()`. This is likely to be different to the error line referenced in the LogEntry message.
+
+    For more details, see [Line numbers flowchart](../topicguides/approach.md#line-numbers).
 
 ### Sample Formatter
 

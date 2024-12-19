@@ -11,20 +11,20 @@ Sub Initialize
         "stack": "{{STACKTRACE}}"
     }|)
     
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered Initialize", "")
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered Initialize", "", Nothing)
 
     Call globalLogSession.addLogWriter(stringFormat)
     Call globalLogSession.addLogWriter(jsonFormat)
 
-    Call globalLogSession.createLogEntry(LOG_INFO, "Added log writers", "string and json")
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished Initialize", "")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Added log writers", "string and json", Nothing)
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished Initialize", "", Nothing)
 
 End Sub
 
 Sub Terminate
 
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered Terminate", "")
-    Call globalLogSession.createLogEntry(LOG_INFO, "Terminating", "Note this fires before Delete in VoltScriptLogging")
-    Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished Terminate", "")
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Entered Terminate", "", Nothing)
+    Call globalLogSession.createLogEntry(LOG_INFO, "Terminating", "Note this fires before Delete in VoltScriptLogging", Nothing)
+    Call globalLogSession.createLogEntry(LOG_DEBUG, "Finished Terminate", "", Nothing)
 
 End Sub
