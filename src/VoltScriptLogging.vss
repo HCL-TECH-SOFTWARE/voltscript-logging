@@ -590,13 +590,13 @@ Public Class ErrorEntry
 				If isEA3 Then 
 					Me.libraryname_ = elements(0)
 					Me.methodname_ = elements(1) 
-					If (Me.linenum_ < 0) Then Me.linenum_ = cint(elements(2))
+					If (Me.linenum_ < 1) Then Me.linenum_ = cint(elements(2))
 
 				Else 
 					Me.libraryname_ = elements(0)
 					Me.classname_ = elements(1) 
 					Me.methodname_ = elements(2) 
-					If (Me.linenum_ < 0) Then Me.linenum_ = cint(elements(3))
+					If (Me.linenum_ < 1) Then Me.linenum_ = cint(elements(3))
 				End If 
 
 				Exit For 
