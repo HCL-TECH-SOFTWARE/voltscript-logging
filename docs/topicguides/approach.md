@@ -61,6 +61,26 @@ The LogSession also contains zero to many LogWriters in a **List**. The LogWrite
 
 The ErrorSession contains zero to many ErrorEntry instances in an **array**.
 
+### Line numbers
+
+"Line number" will vary depending on the object and from where it is created.
+
+``` mermaid
+flowchart TD
+A([Start]) --> B{ErrorEntry?}
+A --> J(Create LogEntry)
+B -- Yes --> C{Custom ErrorEntry?}
+C -- No --> D("ErrorEntry.lineNum = Erl()")
+D --> H
+C -- Yes --> E{lineNum constructor argument < 1?}
+E -- No --> F(ErrorEntry.lineNum = constructor argument)
+E -- Yes --> G("ErrorEntry.lineNum = Erl()")
+G --> H(If ErrorEntry.lineNum < 1,<br/>ErrorEntry.lineNum = line ErrorEntry created from)
+F --> J
+H --> J
+J --> K(LogEntry.lineNum = line ErrorEntry or LogEntry created from)
+```
+
 ## Write log entries
 
 For instances of BaseLogWriter, the `Delete` sub of the LogSession handles writing the log entries with the `writeToLog()` function. For instances of any derived class, the `Delete` sub of the BaseLogWriter handles writing the log entries out.

@@ -32,7 +32,7 @@ Sub performFatalLoop()
     Dim i as Integer
     Dim ee as ErrorEntry
 
-    Call globalLogSession.createLogEntry(LOG_INFO, "Performing a Fatal Loop", "")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Performing a Fatal Loop", "", Nothing)
 
     For i = 0 to 10
         Try
@@ -43,7 +43,7 @@ Sub performFatalLoop()
         End Try
     Next
     
-    Call globalLogSession.createLogEntry(LOG_INFO, "Finished Performing a Fatal Loop", "")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Finished Performing a Fatal Loop", "", Nothing)
 
 End Sub
 ```
@@ -66,7 +66,7 @@ Sub Initialize()
         errors = getErrorSession().errors 
         ForAll element in errors
             Set ee = element
-            Call globalLogSession.createLogEntry(LOG_FATAL, ee.getLogMessage(), ee.stackTrace, "")
+            Call globalLogSession.createLogEntry(LOG_FATAL, ee.getLogMessage(), ee.stackTrace, ee)
         End ForAll
     End If
 
@@ -134,7 +134,7 @@ Sub performFatalLoopWithContext()
 
     Dim i as Integer
 
-    Call globalLogSession.createLogEntry(LOG_INFO, "Performing a Fatal Loop with context", "")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Performing a Fatal Loop with context", "", Nothing)
 
     For i = 0 to 10
         Try
@@ -147,7 +147,7 @@ Sub performFatalLoopWithContext()
         End Try
     Next
     
-    Call globalLogSession.createLogEntry(LOG_INFO, "Finished Performing a Fatal Loop with context", "")
+    Call globalLogSession.createLogEntry(LOG_INFO, "Finished Performing a Fatal Loop with context", "", Nothing)
 
 End Sub
 ```
