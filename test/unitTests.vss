@@ -370,8 +370,8 @@ Function testSpawnedLogEntryProperties(testRunner as TestRunner) As Boolean
     Set ee = errors(Ubound(errors))
     Set le = globalLogSession.lastEntry 
 
-    Call ee.printSummary() 
-    Call le.printSummary() 
+    ' Call ee.printSummary() 
+    ' Call le.printSummary() 
 
     Call testSuite.describe("Test error message is correct").assertEqualsString(MSG_1100, ee.message, True)
     Call testSuite.describe("Test error line is correct").assertEqualsInteger(BaseErrorTesterLine, ee.lineNum)
