@@ -395,12 +395,22 @@ End Function
 Function runSessionTests(testRunner as TestRunner) as Boolean
 
     Dim testSuite as New TestSuite("Session Tests")
+    Dim le as LogEntry 
+    Dim entryIDs as Variant 
+    Dim id as String 
+    Dim count as Integer 
+    Dim i as Integer 
+
     Call testRunner.addTestSuite(testSuite)
 
     Call testSuite.describe("Test getting session").assertIs("LOGSESSION", globalLogSession)
     Call testSuite.describe("Test session id is not empty").assertNotEqualString("", globalLogSession.SessionId)
     Call testSuite.describe("Test last entry is nothing").assertTrue(globalLogSession.LastEntry Is Nothing)
     Call testSuite.describe("Test log entries count is 0").assertEqualsInteger(0, globalLogSession.entryCount)
+    
+    entryIDs = globalLogSession.entryIDs 
+    Call testSuite.describe("Test entryIDs is Empty").assertTrue(isEmpty(entryIDs)) 
+  
     Call testSuite.describe("Test creating new session throws error")
     Try
         Execute |Dim foo as New LogSession()|
@@ -411,6 +421,32 @@ Function runSessionTests(testRunner as TestRunner) as Boolean
         Call testSuite.describe("Test error message was correct").assertEqualsString("Operation Prohibited. Use globalLogSession to get the LogSession object.  ", StrRight(Error(), ": "), True)
     End Try
     
+    count = 0 
+    entryIDs = globalLogSession.entryIDs 
+    If Not isEmpty(entryIDs) Then count = Ubound(entryIDs) + 1
+    Call testSuite.describe("Test entryIDs isEmpty and LogSession has zero entries").assertEqualsInteger(globalLogSession.entryCount, count)
+
+    For i = 1 to 13 
+        Call globalLogSession.createLogEntry(NO_LOGGING, |Filler Log Entry | & i, ||, Nothing)
+    Next 
+    Call testSuite.describe("Test Log Session has 13 entries").assertEqualsInteger(13, globalLogSession.entryCount) 
+
+    entryIDs = globalLogSession.entryIDs 
+    Call testSuite.describe("Test entryIDs has the same number of elements as LogSession entry count").assertEqualsInteger(globalLogSession.entryCount, Ubound(entryIDs) + 1)
+    If globalLogSession.entryCount > 0 Then 
+        Call testSuite.describe("Test LogEntry exists for each entryID")
+        Try 
+            For i = 0 to Ubound(entryIDs) 
+                id = entryIDs(i)
+                Set le = globalLogSession.getLogEntryByID(id) 
+                If not (id = le.entryID) Then Error 1000, |LogEntry.entryID != | & id 
+            Next 
+            Call testSuite.addResult(True, "")
+        Catch 
+            Call testSuite.addResult(False, "")
+        End Try 
+    End If 
+
     Dim currId as String
     currId = globalLogSession.SessionId
     Call globalLogSession.reset()
@@ -425,6 +461,7 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
     Dim logEntrySuite as New TestSuite("Log Entry Tests")
     Dim foo as LogEntry
     Dim bar as LogEntry
+    Dim logLineNum as Integer 
 
     Call testRunner.addTestSuite(logEntrySuite)
     Call logEntrySuite.describe("Test creating new log entry without args throws error")
@@ -450,6 +487,7 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
     Dim timestamp as String
     timestamp = Format(Now, "yyyy-mm-dd hh:MM:ss")
     Set foo = globalLogSession.createLogEntry(LOG_FATAL, "Test Log Entry", "Some extended information", Nothing)
+    logLineNum = getThreadInfo(0) - 1
     Call logEntrySuite.describe("Test log entry message").assertEqualsString("Test Log Entry", foo.Message, True)
     Call logEntrySuite.describe("Test log entry timestamp").assertNotEqualString("", foo.Timestamp)
     Call logEntrySuite.describe("Test log entry timestamp matches now").assertEqualsString(Left(timestamp, 14), Left(foo.Timestamp,14), True)
@@ -459,7 +497,7 @@ Function logEntryTests(testRunner as TestRunner) as Boolean
     Call logEntrySuite.describe("Test log entry level").assertEqualsInteger(LOG_FATAL, foo.Level)
     Call logEntrySuite.describe("Test log entry extended info").assertEqualsString("Some extended information", foo.extInfo, True)
     Call logEntrySuite.describe("Test log entry className").assertEqualsString("", foo.className, True)
-    Call logEntrySuite.describe("Log linenum is correct").assertEqualsInteger(452, foo.lineNum) 
+    Call logEntrySuite.describe("Log linenum is correct").assertEqualsInteger(logLineNum, foo.lineNum) 
 
     ' Reset the global log session before continuing 
     Call globalLogSession.reset() 

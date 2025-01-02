@@ -27,13 +27,13 @@ Option Public
 
 
 '{{Constants
-Public Const NO_LOGGING = 0  ' Only used in LogWriters, to prevent logging any log entries.
-Public Const LOG_TRACE = 1 	 ' Lowest logging level, for most verbose logging.
-Public Const LOG_DEBUG = 2 	 ' Fifth-highest logging level, for more extensive messages than most support requires.
-Public Const LOG_INFO = 3 	 ' Fourth-highest logging level, for informational messages.
-Public Const LOG_WARN = 4 	 ' Third-highest logging level, for log entries that are not errors but should be addressed.
-Public Const LOG_ERROR = 5 	 ' Second-highest logging level, for errors that are not fatal to continuing process.
-Public Const LOG_FATAL = 6 	 ' Highest logging level.
+Public Const NO_LOGGING = 0	' Only used in LogWriters, to prevent logging any log entries.
+Public Const LOG_TRACE = 1	' Lowest logging level, for most verbose logging.
+Public Const LOG_DEBUG = 2 	' Fifth-highest logging level, for more extensive messages than most support requires.
+Public Const LOG_INFO = 3 	' Fourth-highest logging level, for informational messages.
+Public Const LOG_WARN = 4 	' Third-highest logging level, for log entries that are not errors but should be addressed.
+Public Const LOG_ERROR = 5 	' Second-highest logging level, for errors that are not fatal to continuing process.
+Public Const LOG_FATAL = 6 	' Highest logging level.
 '}}
 
 '{{SETI_AUTHOR_CODE_VoltScriptLogging_Private_Constants
@@ -1236,22 +1236,21 @@ Public Class LogSession
 
 	%REM
 		Property entryIDs 
-		Array of entryIDs for all LogEntry instances contained within the object.   If no LogEntry instances exist, returns a single element array containing an empty string. 
+		Array of entryIDs for all LogEntry instances contained within the object.   Returns and empty variant if no LogEntry instances exist.
 	
 		@return	Variant
 	%END REM
 	Public Property Get entryIDs As Variant 
 		'{{SETI_AUTHOR_CODE_Get.entryIDs_implementation
-		Dim result() As String 
+		Dim result as Variant 
 		Dim i as Integer 
 
-		Redim result(Me.entryCount) As String
+		If isEmpty(Me.content_) Then return result 
 
-		If Not Me.isEmpty Then
-			For i = 0 To Ubound(Me.content_)
-				result(i) = Me.content_(i).entryID
-			Next
-		End If
+		ReDim result(Ubound(Me.content_)) As String 
+		For i = 0 To Ubound(Me.content_)
+			result(i) = Me.content_(i).entryID
+		Next			
 
 		Return result
 
