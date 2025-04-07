@@ -5,7 +5,6 @@ libs/VoltScriptCollections.vss
 libs/VoltScriptTesting.vss
 */unit-test-reports/*
 seti.ini
-libcurl.log
 core
 /src/main.vss 
 .devcontainer/*
