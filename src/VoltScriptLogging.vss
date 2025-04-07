@@ -285,6 +285,9 @@ Runs during cleanup of the object instance and outputs log entries.
 	%END REM
 	Public Sub New(label As String, minLevel As Integer, maxLevel As Integer, formatter As String) 
 		'{{SETI_AUTHOR_CODE_New_implementation
+		If (maxLevel < minLevel) Then
+			Print "WARNING: maxLevel is below minLevel, nothing will be logged. Is this a mistake?"
+		End If
 		Me.label_ = label
 		Me.minLevel_ = minLevel
 		Me.maxLevel_ = maxLevel
