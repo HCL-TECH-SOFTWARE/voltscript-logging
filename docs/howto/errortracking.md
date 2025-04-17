@@ -11,7 +11,7 @@ Error tracking is used for capturing VoltScript errors. These are errors trigger
 The error tracking uses two classes:
 
 - **ErrorEntry**: Instances of this class carry the aforementioned information about an error.  
-- **ErrorSession**, accessed via `getErrorSession()`, is a container of `ErrorEntry` object instances.  These instances are automatically created and added to the `ErrorSession` via the `createErrorEntry()` function.  Custom error information can also be added to the `ErrorSession` by calling the `createCustomErrorEntry()` method. 
+- **ErrorSession**, accessed via `getErrorSession()`, is a container of `ErrorEntry` object instances.  These instances are automatically created and added to the `ErrorSession` via the `createErrorEntry()` function.  Custom error information can also be added to the `ErrorSession` by calling the `createCustomErrorEntry()` method.
 
 ErrorEntry instances carry the error code, but do not have an associated error or log level: level is only relevant when logging the information.  Implementation code for differing handling behavior based upon the value of the error code will typically be contained inside of a Try/Catch block.
 
@@ -121,9 +121,9 @@ The sample code in the above `Sub Initialize()` will create LogEntries for ALL e
 
 The `levelNum` argument of the `createErrorEntry()` method specifies the logging level.  If set to `NO_LOGGING` then the ErrorEntry will simply be created and added to the ErrorSession.  Passing any other valid log level will cause a new LogEntry object to be immediately created by the LogSession, using information from the ErrorEntry.
 
-``` vbscript 
+``` vbscript
 Call getErrorSession().createErrorEntry(LOG_ERROR)
-``` 
+```
 
 This capability allows the developer to add information to the log based upon the context of the error (`LOG_TRACE`, `LOG_DEBUG`, `LOG_INFO`... `LOG_FATAL`).
 

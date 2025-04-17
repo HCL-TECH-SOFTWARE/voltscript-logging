@@ -10,7 +10,7 @@
         "paulstephen.withers@hcl.com"
     ],
     "library": "",		// Name of the repo or folder container releases
-    "version":"1.0.0",	// REQUIRED: Current version for this project, used with dependency management to find the modules
+    "version":"1.0.1",	// REQUIRED: Current version for this project, used with dependency management to find the modules
     "sourceDir": "src",	// REQUIRED: Directory where mainScripts are located
     "testDir": "test",	// Directory where unitTestScripts and integrationTestScripts are located
     "libsDir": "libs",	// Directory where VoltScript Library Modules and shared scripts are located

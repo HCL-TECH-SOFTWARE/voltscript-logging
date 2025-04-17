@@ -7,7 +7,7 @@ LogWriters are designed to write logs to different locations. The LogWriter take
 - **maxLevel**:  a maximum level of a LogEntry to log.
 - **formatter**: a string formatter to produce the message to log.
 
-Logs will be outputted if they are at or above the minimum level and at or below the maximum level. 
+Logs will be outputted if they are at or above the minimum level and at or below the maximum level.
 
 For example, if the *minimum* level is LOG_TRACE and *maximum* level is LOG_INFO then logs with LOG_TRACE, LOG_DEBUG, and LOG_INFO will be written out, but logs with LOG_WARNING, LOG_ERROR, and LOG_FATAL will be ignored.
 

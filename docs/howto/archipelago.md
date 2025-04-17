@@ -35,7 +35,7 @@ You'll need to add the following relevant dependency to your **dependencies** ob
 ```json
         {
             "library": "voltscript-logging",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "module": "VoltScriptLogging.vss",
             "repository": "hcl-github"
         }

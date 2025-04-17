@@ -193,5 +193,4 @@ End Class
 !!! tip
     We strongly recommend that you use StreamVSE instead. That is the approach to writing to files that our production code uses.
 
-
 See [sample code](../assets/example_code/basicFileWriterSample.txt)

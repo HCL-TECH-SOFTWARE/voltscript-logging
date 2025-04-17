@@ -29,7 +29,7 @@ If you want to get involved in a role (including ones we may have missed!) reach
     - Write documentation in the relevant area of the docs directory.
     - Preview documentation using MKDocs, either [locally installed with relevant plugins](https://squidfunk.github.io/mkdocs-material/getting-started/) or using the [MKDocs HCL Container Image](https://github.com/HCL-TECH-SOFTWARE/hcl-mkdocs-build-image)
 
-## PRs
+## PRs
 
 - When ready, complete a PR and submit.
 - Review the requirements for submitting a PR, for example writing test and updating documentation.

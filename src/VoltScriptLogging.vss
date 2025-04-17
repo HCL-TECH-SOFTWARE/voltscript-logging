@@ -6,7 +6,7 @@
 
 '{{VSID_COPYRIGHT_NOTICE_
 %REM
-    Copyright HCL America, Inc. 1999, 2023
+    Copyright HCL America, Inc. 2022, 2025
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -566,8 +566,7 @@ Public Class ErrorEntry
 
 		Dim lineentry As String 
 
-		Dim idx as Integer 
-		Dim isEA3 As Boolean 
+		Dim idx as Integer
 
 
 		If (|| = Trim(message)) Then Me.message_ = Error$() Else Me.message_ = Message 
@@ -577,7 +576,6 @@ Public Class ErrorEntry
 		' BEGIN STACK TRACE PROCESSING 
 		lines = FullTrim(split(getThreadInfo(12), LF))
 		elements = split(lines(0), ",")
-		isEA3 = (Ubound(elements) < 3)
 
 		' check for a corrupted last line entry.  If found then set it to an empty string. 
 		elements = split(lines(Ubound(lines)), ",")
@@ -590,17 +588,10 @@ Public Class ErrorEntry
 				lines(idx) = ""
 			Else 
 				elements = Split(Trim(lineentry), |,|)
-				If isEA3 Then 
-					Me.libraryname_ = elements(0)
-					Me.methodname_ = elements(1) 
-					If (Me.linenum_ < 1) Then Me.linenum_ = cint(elements(2))
-
-				Else 
-					Me.libraryname_ = elements(0)
-					Me.classname_ = elements(1) 
-					Me.methodname_ = elements(2) 
-					If (Me.linenum_ < 1) Then Me.linenum_ = cint(elements(3))
-				End If 
+				Me.libraryname_ = elements(0)
+				Me.classname_ = elements(1) 
+				Me.methodname_ = elements(2) 
+				If (Me.linenum_ < 1) Then Me.linenum_ = cint(elements(3))
 
 				Exit For 
 			End If 
@@ -1071,8 +1062,7 @@ Public Class LogEntry
 
 		Dim lineentry As String 
 
-		Dim idx as Integer 
-		Dim isEA3 As Boolean 
+		Dim idx as Integer
 
 
 		' Fail immediately if levelNum is invalid 
@@ -1097,7 +1087,6 @@ Public Class LogEntry
 		' BEGIN STACK TRACE PROCESSING 
 		lines = FullTrim(split(getThreadInfo(12), LF))
 		elements = split(lines(0), ",")
-		isEA3 = (Ubound(elements) < 3)
 
 		' check for a corrupted last line entry.  If found then set it to an empty string. 
 		elements = split(lines(Ubound(lines)), ",")
@@ -1110,17 +1099,10 @@ Public Class LogEntry
 				lines(idx) = ""
 			Else 
 				elements = Split(Trim(lineentry), |,|)
-				If isEA3 Then 
-					Me.libraryname_ = elements(0)
-					Me.methodname_ = elements(1) 
-					Me.linenum_ = cint(elements(2))
-
-				Else 
-					Me.libraryname_ = elements(0)
-					Me.classname_ = elements(1) 
-					Me.methodname_ = elements(2) 
-					Me.linenum_ = cint(elements(3))
-				End If 
+				Me.libraryname_ = elements(0)
+				Me.classname_ = elements(1) 
+				Me.methodname_ = elements(2) 
+				Me.linenum_ = cint(elements(3))
 
 				Exit For 
 			End If 
