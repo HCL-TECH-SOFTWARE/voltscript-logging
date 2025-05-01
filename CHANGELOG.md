@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [1.0.1] - 2025-05-12
+## [1.0.1] - May 2025
 
 - MXOP-28638 Removed defensive coding for isEA3.
 - MXOP-28156 Added warning print if maxLevel < minLevel.
