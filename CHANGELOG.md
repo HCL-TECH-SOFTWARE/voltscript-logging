@@ -1,4 +1,8 @@
 # CHANGELOG
+## [1.0.2] - Unreleased
+
+- MXOP-32177: Corrected API Documentation invalid file and folder name (VoltScriptLogging_Library* vs VoltscriptLogging_Library*)
+- MXOP-32177: Removed invalid "pages/" sub-path from the site_url in mkdocs.yml
 
 ## [1.0.1] - May 2025
 
