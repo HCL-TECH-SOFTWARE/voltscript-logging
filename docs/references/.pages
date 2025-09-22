@@ -1,5 +1,5 @@
 nav:
     - index.md
-    - whatsnew.md
+#    - whatsnew.md
     - API documentation: ./references/apidoc/index.html
     - FAQs.md
