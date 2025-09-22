@@ -1,0 +1,28 @@
+Option Public
+Option Declare
+
+Use "../../../src/VoltScriptLogging"
+
+Class BasicFileWriter as BaseLogWriter
+    Private logDir_ as String
+    Private fileNum as Integer
+
+    Sub New(label as String, minLevel as Integer, maxLevel as Integer, formatter as String)
+        ' this assumes a subdirectory exists called logs in the current directory
+        logDir_ = CurDir() & "/logs"
+    End Sub
+
+    Sub initializeLog()
+        fileNum% = FreeFile()
+        Open logDir_ & "/log" & CreateUUID() & ".txt" For Output As fileNum%
+    End Sub
+
+	Public Sub outputLogEntryMessage(message as String)
+        Print #fileNum%, message
+    End Sub
+
+    Public Sub terminateLog()
+        Close fileNum%
+    End Sub
+
+End Class

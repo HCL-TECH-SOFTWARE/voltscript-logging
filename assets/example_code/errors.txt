@@ -1,0 +1,89 @@
+Option Declare
+Option Public
+
+' Path mapped to compile when file type is changed in *THIS* repo's source code, amend as necessary
+Use "../../../src/VoltScriptLogging"
+
+Sub Initialize()
+    Dim errors as Variant 
+    Dim ee as ErrorEntry
+    Dim writer as BaseLogWriter 
+
+    ' Additional code required here to add a LogWriter, or nothing gets written out!
+
+    Call performFatalLoop()
+
+    If (getErrorSession().errorCount > 0) Then
+        errors = getErrorSession().errors 
+        ForAll element in errors
+            Set ee = element
+            Call globalLogSession.createLogEntry(LOG_FATAL, ee.getLogMessage(), ee.stackTrace, ee)
+        End ForAll
+    End If
+
+
+    Call performCreateCustomErrorEntryInstances() 
+    
+    Call performFatalLoopWithContext() 
+    
+    Set writer = New BaseLogWriter("MyLogWriter", LOG_TRACE, LOG_FATAL, |{{TIMESTAMP}} {{LEVELNAME}}: {{METHODNAME}} {{MESSAGE}}|)
+    Call globalLogSession.addLogWriter(writer) 
+
+End Sub
+
+
+Sub performFatalLoop()
+
+    Dim i as Integer
+    Dim ee as ErrorEntry
+
+    Call globalLogSession.createLogEntry(LOG_INFO, "Performing a Fatal Loop", "", Nothing)
+
+    For i = 0 to 10
+        Try
+            ' Do stuff
+            Error 1000, "Generic Error on loop " & i
+        Catch
+            Set ee = getErrorSession().createErrorEntry(NO_LOGGING)
+        End Try
+    Next
+    
+    Call globalLogSession.createLogEntry(LOG_INFO, "Finished Performing a Fatal Loop", "", Nothing)
+
+End Sub
+
+
+Sub performCreateCustomErrorEntryInstances() 
+
+    ' Create custom ErrorEntry instances without throw / catch.
+    Call getErrorSession().createCustomErrorEntry("The email address requires an '@' character", 2021, 101, NO_LOGGING)
+
+    Call getErrorSession().createCustomErrorEntry("The passed in argument is invalid", 1195, 201, LOG_WARN)
+    
+    Call getErrorSession().createCustomErrorEntry("The file cannot be found", 1065, 351, LOG_ERROR)
+
+End Sub 
+
+
+
+Sub performFatalLoopWithContext()
+
+    Dim i as Integer
+
+    Call globalLogSession.createLogEntry(LOG_INFO, "Performing a Fatal Loop with context", "", Nothing)
+
+    For i = 0 to 10
+        Try
+            ' Do stuff
+            If i < 5 Then Error 1000, "Generic Error on loop " & i
+
+            Call getErrorSession().createCustomErrorEntry("Iteration " & i, 1000 + i, 85, LOG_INFO)
+        Catch
+            Call getErrorSession().createErrorEntry(LOG_ERROR)
+        End Try
+    Next
+    
+    Call globalLogSession.createLogEntry(LOG_INFO, "Finished Performing a Fatal Loop with context", "", Nothing)
+
+End Sub
+
